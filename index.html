@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <title>Titan85</title>
+
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Titan85" />
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ===== Header ===== -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">T85</span>
+      <div>
+        <h1 id="headerTitle">Today</h1>
+        <p id="headerSub" class="header-sub">Titan85</p>
+      </div>
+    </div>
+    <div class="week-pill" id="weekPill">Week 1</div>
+  </header>
+
+  <!-- ===== Views ===== -->
+  <main id="app">
+
+    <!-- Dashboard -->
+    <section class="view active" id="view-today">
+      <div id="todayTraining"></div>
+      <h2 class="section-title">Today's Meals</h2>
+      <div id="mealList" class="stack"></div>
+      <div class="progress-ring-wrap card">
+        <div>
+          <h3>Meals logged</h3>
+          <p class="muted" id="mealProgressLabel">0 of 6</p>
+        </div>
+        <div class="mini-bar"><span id="mealProgressBar"></span></div>
+      </div>
+    </section>
+
+    <!-- Meal Plan -->
+    <section class="view" id="view-plan">
+      <div class="week-switch" id="weekSwitch"></div>
+      <div id="planPrep" class="card"></div>
+      <div id="planDays" class="stack"></div>
+    </section>
+
+    <!-- Recipes -->
+    <section class="view" id="view-recipes">
+      <h2 class="section-title">Recipe Book</h2>
+      <div id="recipeList" class="stack"></div>
+    </section>
+
+    <!-- Shopping -->
+    <section class="view" id="view-shopping">
+      <div class="week-switch" id="shopWeekSwitch"></div>
+      <div class="row-between">
+        <h2 class="section-title">Shopping List</h2>
+        <button class="ghost-btn" id="clearShopBtn">Reset</button>
+      </div>
+      <div id="shoppingList" class="stack"></div>
+    </section>
+
+    <!-- Workout Logger -->
+    <section class="view" id="view-workout">
+      <h2 class="section-title">Workout Log</h2>
+      <div class="split-switch" id="splitSwitch"></div>
+      <div id="exerciseList" class="stack"></div>
+      <button class="primary-btn" id="saveWorkoutBtn">Save Session</button>
+      <div id="workoutHistory" class="stack"></div>
+    </section>
+
+    <!-- Progress -->
+    <section class="view" id="view-progress">
+      <h2 class="section-title">Progress</h2>
+      <div class="card">
+        <h3>Log Bodyweight (kg)</h3>
+        <div class="input-row">
+          <input type="number" id="currentWeight" step="0.1" placeholder="e.g. 82.5" inputmode="decimal" />
+          <button class="primary-btn slim" id="saveWeightBtn">Save</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Weight History</h3>
+        <canvas id="weightChart"></canvas>
+        <p class="muted small" id="weightStat"></p>
+      </div>
+
+      <div class="card">
+        <h3>Measurements (cm)</h3>
+        <table class="measure-table">
+          <tr><td>Chest</td><td><input id="m-chest" inputmode="decimal" /></td></tr>
+          <tr><td>Waist</td><td><input id="m-waist" inputmode="decimal" /></td></tr>
+          <tr><td>Arms</td><td><input id="m-arms" inputmode="decimal" /></td></tr>
+          <tr><td>Thighs</td><td><input id="m-thighs" inputmode="decimal" /></td></tr>
+        </table>
+        <button class="primary-btn slim" id="saveMeasureBtn">Save Measurements</button>
+        <p class="muted small" id="measureStat"></p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== Bottom Tab Bar ===== -->
+  <nav class="tabbar">
+    <button class="tab active" data-view="today"><span class="ico">🏠</span>Today</button>
+    <button class="tab" data-view="plan"><span class="ico">📅</span>Plan</button>
+    <button class="tab" data-view="recipes"><span class="ico">🍲</span>Recipes</button>
+    <button class="tab" data-view="shopping"><span class="ico">🛒</span>Shop</button>
+    <button class="tab" data-view="workout"><span class="ico">🏋️</span>Train</button>
+    <button class="tab" data-view="progress"><span class="ico">📈</span>Stats</button>
+  </nav>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
