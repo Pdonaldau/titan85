@@ -1,0 +1,300 @@
+{
+  "recipes": [
+    {
+      "id": 1,
+      "name": "Chicken & Vegetable Curry",
+      "protein": 44,
+      "calories": 710,
+      "prep": 20,
+      "cook": 30,
+      "freeze": true,
+      "servings": 5,
+      "tags": ["Week 1", "Batch Cook", "High Protein"],
+      "ingredients": [
+        "1kg Chicken Breast",
+        "2 Onions",
+        "2 Carrots",
+        "1 Cauliflower",
+        "400g Rice (dry)",
+        "2 tbsp Curry Powder",
+        "400ml Light Coconut Milk",
+        "1 tbsp Olive Oil"
+      ],
+      "method": [
+        "Brown the diced chicken in olive oil.",
+        "Cook onions and carrots until soft.",
+        "Add curry powder and stir for 1 minute.",
+        "Pour in coconut milk.",
+        "Add cauliflower florets.",
+        "Simmer for 25 minutes.",
+        "Serve with cooked rice. Portion into 5 containers."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Beef & Bean Chilli",
+      "protein": 44,
+      "calories": 760,
+      "prep": 15,
+      "cook": 40,
+      "freeze": true,
+      "servings": 5,
+      "tags": ["Week 1", "Batch Cook", "High Protein"],
+      "ingredients": [
+        "1kg Lean Beef Mince",
+        "2 tins Chopped Tomatoes",
+        "2 tins Kidney Beans",
+        "1 Onion",
+        "3 cloves Garlic",
+        "400g Rice (dry)",
+        "1 tbsp Chilli Powder & Cumin",
+        "Greek Yogurt to serve"
+      ],
+      "method": [
+        "Brown the beef mince.",
+        "Cook onions and garlic.",
+        "Add chilli powder and cumin.",
+        "Add chopped tomatoes.",
+        "Stir in drained kidney beans.",
+        "Simmer 30 minutes.",
+        "Serve with rice and a spoon of Greek yogurt."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Overnight Oats",
+      "protein": 36,
+      "calories": 620,
+      "prep": 10,
+      "cook": 0,
+      "freeze": false,
+      "servings": 5,
+      "tags": ["Breakfast", "No Cook"],
+      "ingredients": [
+        "400g Rolled Oats",
+        "1L Whole Milk",
+        "500g Skyr",
+        "2 scoops Whey Protein",
+        "Frozen Berries",
+        "Honey"
+      ],
+      "method": [
+        "Combine oats, milk and skyr in 5 jars.",
+        "Stir in whey protein.",
+        "Top with frozen berries and a drizzle of honey.",
+        "Refrigerate overnight."
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Skyr Protein Pot",
+      "protein": 36,
+      "calories": 430,
+      "prep": 8,
+      "cook": 0,
+      "freeze": false,
+      "servings": 5,
+      "tags": ["Snack", "No Cook"],
+      "ingredients": [
+        "1kg Skyr",
+        "Frozen Berries",
+        "Mixed Nuts",
+        "Honey"
+      ],
+      "method": [
+        "Divide skyr into 5 pots.",
+        "Top each with berries and a small handful of nuts.",
+        "Drizzle with honey."
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Chicken & Broccoli Bake",
+      "protein": 46,
+      "calories": 700,
+      "prep": 20,
+      "cook": 35,
+      "freeze": true,
+      "servings": 5,
+      "tags": ["Week 2", "Batch Cook", "High Protein"],
+      "ingredients": [
+        "1kg Chicken Breast",
+        "2 heads Broccoli",
+        "400g Pasta or Rice",
+        "500ml Light Cheese Sauce",
+        "100g Grated Cheese",
+        "1 Onion"
+      ],
+      "method": [
+        "Poach or bake the chicken and dice.",
+        "Blanch the broccoli florets.",
+        "Cook pasta or rice.",
+        "Mix chicken, broccoli, pasta and cheese sauce in a large dish.",
+        "Top with grated cheese.",
+        "Bake at 200C for 20 minutes until golden.",
+        "Portion into 5 containers."
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Lean Beef Bolognese",
+      "protein": 44,
+      "calories": 730,
+      "prep": 15,
+      "cook": 40,
+      "freeze": true,
+      "servings": 5,
+      "tags": ["Week 2", "Batch Cook", "High Protein"],
+      "ingredients": [
+        "1kg Lean Beef Mince",
+        "2 tins Chopped Tomatoes",
+        "2 tbsp Tomato Puree",
+        "1 Onion",
+        "2 Carrots",
+        "3 cloves Garlic",
+        "400g Wholewheat Pasta",
+        "Italian Herbs"
+      ],
+      "method": [
+        "Brown the beef mince.",
+        "Cook onion, carrot and garlic until soft.",
+        "Add tomato puree and herbs.",
+        "Add chopped tomatoes.",
+        "Simmer 30 minutes until thick.",
+        "Serve over cooked pasta. Portion into 5 containers."
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Turkey Meatballs",
+      "protein": 45,
+      "calories": 680,
+      "prep": 25,
+      "cook": 30,
+      "freeze": true,
+      "servings": 5,
+      "tags": ["Week 3", "Batch Cook", "High Protein"],
+      "ingredients": [
+        "1kg Turkey Mince",
+        "1 Egg",
+        "50g Breadcrumbs",
+        "2 tins Chopped Tomatoes",
+        "1 Onion",
+        "3 cloves Garlic",
+        "400g Pasta",
+        "Italian Herbs"
+      ],
+      "method": [
+        "Mix turkey mince, egg, breadcrumbs and herbs.",
+        "Roll into meatballs.",
+        "Brown the meatballs in a pan.",
+        "Make a tomato sauce with onion, garlic and chopped tomatoes.",
+        "Simmer meatballs in the sauce for 20 minutes.",
+        "Serve with pasta. Portion into 5 containers."
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Traditional Beef Stew",
+      "protein": 42,
+      "calories": 720,
+      "prep": 20,
+      "cook": 90,
+      "freeze": true,
+      "servings": 5,
+      "tags": ["Week 3", "Batch Cook", "Slow Cook"],
+      "ingredients": [
+        "1kg Diced Stewing Beef",
+        "4 Carrots",
+        "3 Potatoes",
+        "2 Onions",
+        "2 tbsp Plain Flour",
+        "1L Beef Stock",
+        "Bay Leaves & Thyme"
+      ],
+      "method": [
+        "Toss beef in seasoned flour and brown.",
+        "Cook onions until soft.",
+        "Add carrots and potatoes.",
+        "Pour in beef stock and herbs.",
+        "Simmer gently for 90 minutes until tender.",
+        "Portion into 5 containers."
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Greek Chicken",
+      "protein": 47,
+      "calories": 690,
+      "prep": 20,
+      "cook": 30,
+      "freeze": true,
+      "servings": 5,
+      "tags": ["Week 4", "Batch Cook", "High Protein"],
+      "ingredients": [
+        "1kg Chicken Thigh or Breast",
+        "2 Lemons",
+        "3 cloves Garlic",
+        "2 tbsp Olive Oil",
+        "Dried Oregano",
+        "400g Rice",
+        "Red Onion & Peppers"
+      ],
+      "method": [
+        "Marinate chicken in lemon, garlic, oregano and olive oil.",
+        "Roast at 200C for 25-30 minutes with peppers and red onion.",
+        "Cook the rice.",
+        "Slice chicken and portion with rice and vegetables into 5 containers."
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Chicken Lentil Stew",
+      "protein": 43,
+      "calories": 650,
+      "prep": 15,
+      "cook": 45,
+      "freeze": true,
+      "servings": 5,
+      "tags": ["Week 4", "Batch Cook", "High Protein"],
+      "ingredients": [
+        "800g Chicken Breast",
+        "300g Red Lentils",
+        "2 Carrots",
+        "2 Onions",
+        "3 cloves Garlic",
+        "1L Chicken Stock",
+        "1 tin Chopped Tomatoes",
+        "Cumin & Paprika"
+      ],
+      "method": [
+        "Brown the diced chicken.",
+        "Cook onions, garlic and carrots.",
+        "Add spices, lentils, tomatoes and stock.",
+        "Simmer 35-40 minutes until lentils are soft.",
+        "Portion into 5 containers."
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Cottage Cheese Pot",
+      "protein": 30,
+      "calories": 320,
+      "prep": 5,
+      "cook": 0,
+      "freeze": false,
+      "servings": 5,
+      "tags": ["Snack", "No Cook"],
+      "ingredients": [
+        "1kg Cottage Cheese",
+        "Pineapple or Berries",
+        "Mixed Seeds",
+        "Black Pepper (optional)"
+      ],
+      "method": [
+        "Divide cottage cheese into 5 pots.",
+        "Top with fruit and a sprinkle of seeds."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "week1": [
+    { "category": "Protein", "items": ["2kg Chicken Breast", "1kg Lean Beef Mince", "12 Eggs", "1kg Skyr", "Greek Yogurt", "Whole Milk (2L)", "Smoked Salmon", "2 Steaks", "Whole Chicken"] },
+    { "category": "Carbohydrates", "items": ["Rice (1kg)", "Rolled Oats (500g)", "Potatoes (2kg)", "Wholemeal Bread", "Bagels"] },
+    { "category": "Fruit", "items": ["Bananas", "Apples", "Frozen Berries"] },
+    { "category": "Vegetables", "items": ["Cauliflower", "Carrots", "Onions", "Garlic", "Spinach"] },
+    { "category": "Store Cupboard", "items": ["Light Coconut Milk", "Curry Powder", "Chilli Powder & Cumin", "2 tins Chopped Tomatoes", "2 tins Kidney Beans"] },
+    { "category": "Healthy Fats", "items": ["Olive Oil", "Mixed Nuts", "Peanut Butter", "Whey Protein"] }
+  ],
+  "week2": [
+    { "category": "Protein", "items": ["2kg Chicken Breast", "1kg Lean Beef Mince", "12 Eggs", "1kg Skyr", "Greek Yogurt", "Whole Milk (2L)", "Smoked Salmon", "2 Steaks", "Whole Chicken", "Grated Cheese"] },
+    { "category": "Carbohydrates", "items": ["Wholewheat Pasta (500g)", "Rice (500g)", "Rolled Oats (500g)", "Potatoes (2kg)", "Bagels"] },
+    { "category": "Fruit", "items": ["Bananas", "Apples", "Frozen Berries"] },
+    { "category": "Vegetables", "items": ["Broccoli (2 heads)", "Carrots", "Onions", "Garlic", "Spinach"] },
+    { "category": "Store Cupboard", "items": ["Light Cheese Sauce", "2 tins Chopped Tomatoes", "Tomato Puree", "Italian Herbs"] },
+    { "category": "Healthy Fats", "items": ["Olive Oil", "Mixed Nuts", "Peanut Butter", "Whey Protein"] }
+  ],
+  "week3": [
+    { "category": "Protein", "items": ["1kg Turkey Mince", "1kg Diced Stewing Beef", "12 Eggs", "1kg Cottage Cheese", "Greek Yogurt", "Whole Milk (2L)", "Smoked Salmon", "2 Steaks", "Whole Chicken"] },
+    { "category": "Carbohydrates", "items": ["Pasta (500g)", "Potatoes (2kg)", "Rolled Oats (500g)", "Bagels", "Breadcrumbs"] },
+    { "category": "Fruit", "items": ["Bananas", "Apples", "Pineapple", "Frozen Berries"] },
+    { "category": "Vegetables", "items": ["Carrots", "Potatoes", "Onions", "Garlic", "Spinach"] },
+    { "category": "Store Cupboard", "items": ["2 tins Chopped Tomatoes", "Beef Stock", "Italian Herbs", "Bay Leaves & Thyme", "Plain Flour"] },
+    { "category": "Healthy Fats", "items": ["Olive Oil", "Mixed Nuts", "Mixed Seeds", "Peanut Butter", "Whey Protein"] }
+  ],
+  "week4": [
+    { "category": "Protein", "items": ["2kg Chicken Breast/Thigh", "1kg Skyr", "12 Eggs", "Greek Yogurt", "Whole Milk (2L)", "Smoked Salmon", "2 Steaks", "Whole Chicken"] },
+    { "category": "Carbohydrates", "items": ["Rice (1kg)", "Red Lentils (300g)", "Rolled Oats (500g)", "Potatoes (2kg)", "Bagels"] },
+    { "category": "Fruit", "items": ["Bananas", "Apples", "Lemons", "Frozen Berries"] },
+    { "category": "Vegetables", "items": ["Peppers", "Red Onion", "Carrots", "Onions", "Garlic", "Spinach"] },
+    { "category": "Store Cupboard", "items": ["1 tin Chopped Tomatoes", "Chicken Stock", "Dried Oregano", "Cumin & Paprika"] },
+    { "category": "Healthy Fats", "items": ["Olive Oil", "Mixed Nuts", "Peanut Butter", "Whey Protein"] }
+  ]
+}

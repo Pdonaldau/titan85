@@ -1,0 +1,41 @@
+{
+  "splits": [
+    {
+      "id": "upper",
+      "name": "Upper Body",
+      "exercises": [
+        { "exercise": "Bench Press", "sets": 3, "reps": "8-10" },
+        { "exercise": "Incline Dumbbell Press", "sets": 3, "reps": "10" },
+        { "exercise": "Lat Pulldown", "sets": 3, "reps": "10" },
+        { "exercise": "Cable Row", "sets": 3, "reps": "10" },
+        { "exercise": "Shoulder Press", "sets": 3, "reps": "10" },
+        { "exercise": "Bicep Curl", "sets": 3, "reps": "12" },
+        { "exercise": "Tricep Pushdown", "sets": 3, "reps": "12" }
+      ]
+    },
+    {
+      "id": "lower",
+      "name": "Lower Body",
+      "exercises": [
+        { "exercise": "Leg Press", "sets": 3, "reps": "10" },
+        { "exercise": "Romanian Deadlift", "sets": 3, "reps": "10" },
+        { "exercise": "Walking Lunges", "sets": 3, "reps": "12" },
+        { "exercise": "Leg Curl", "sets": 3, "reps": "12" },
+        { "exercise": "Standing Calf Raise", "sets": 3, "reps": "15" },
+        { "exercise": "Plank", "sets": 3, "reps": "45 sec" }
+      ]
+    },
+    {
+      "id": "full",
+      "name": "Full Body",
+      "exercises": [
+        { "exercise": "Squat", "sets": 3, "reps": "8-10" },
+        { "exercise": "Bench Press", "sets": 3, "reps": "8-10" },
+        { "exercise": "Deadlift", "sets": 3, "reps": "6-8" },
+        { "exercise": "Pull-Up", "sets": 3, "reps": "8-10" },
+        { "exercise": "Shoulder Press", "sets": 3, "reps": "10" },
+        { "exercise": "Plank", "sets": 3, "reps": "60 sec" }
+      ]
+    }
+  ]
+}

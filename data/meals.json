@@ -1,0 +1,332 @@
+{
+  "weeks": [
+    {
+      "week": 1,
+      "title": "Chicken Curry & Beef Chilli",
+      "prep": [
+        "Chicken & Vegetable Curry",
+        "Beef & Bean Chilli",
+        "Overnight Oats",
+        "Skyr Protein Pot"
+      ],
+      "days": [
+        {
+          "day": "Monday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Chicken & Vegetable Curry",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Beef & Bean Chilli",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Upper Body"
+        },
+        {
+          "day": "Tuesday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Apple & Mixed Nuts",
+          "lunch": "Chicken & Vegetable Curry",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Beef & Bean Chilli",
+          "snack3": "Whole Milk",
+          "training": "Swimming"
+        },
+        {
+          "day": "Wednesday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Chicken & Vegetable Curry",
+          "snack2": "Protein Shake",
+          "dinner": "Beef & Bean Chilli",
+          "snack3": "Cottage Cheese",
+          "training": "Lower Body"
+        },
+        {
+          "day": "Thursday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Chicken & Vegetable Curry",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Beef & Bean Chilli",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Recovery Walk"
+        },
+        {
+          "day": "Friday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Apple & Mixed Nuts",
+          "lunch": "Chicken & Vegetable Curry",
+          "snack2": "Protein Shake",
+          "dinner": "Beef & Bean Chilli",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Full Body"
+        },
+        {
+          "day": "Saturday",
+          "breakfast": "Eggs & Smoked Salmon Bagel",
+          "snack1": "Protein Shake",
+          "lunch": "Chicken & Vegetable Curry",
+          "snack2": "Greek Yogurt",
+          "dinner": "Steak & Potatoes",
+          "snack3": "Whole Milk",
+          "training": "Swimming"
+        },
+        {
+          "day": "Sunday",
+          "breakfast": "Eggs, Bacon & Wholemeal Toast",
+          "snack1": "Fruit & Mixed Nuts",
+          "lunch": "Roast Chicken & Potatoes",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Roast Chicken & Vegetables",
+          "snack3": "Whole Milk",
+          "training": "Meal Prep"
+        }
+      ]
+    },
+    {
+      "week": 2,
+      "title": "Chicken & Broccoli Bake & Beef Bolognese",
+      "prep": [
+        "Chicken & Broccoli Bake",
+        "Lean Beef Bolognese",
+        "Overnight Oats",
+        "Skyr Protein Pot"
+      ],
+      "days": [
+        {
+          "day": "Monday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Chicken & Broccoli Bake",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Lean Beef Bolognese",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Upper Body"
+        },
+        {
+          "day": "Tuesday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Apple & Mixed Nuts",
+          "lunch": "Chicken & Broccoli Bake",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Lean Beef Bolognese",
+          "snack3": "Whole Milk",
+          "training": "Swimming"
+        },
+        {
+          "day": "Wednesday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Chicken & Broccoli Bake",
+          "snack2": "Protein Shake",
+          "dinner": "Lean Beef Bolognese",
+          "snack3": "Cottage Cheese",
+          "training": "Lower Body"
+        },
+        {
+          "day": "Thursday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Chicken & Broccoli Bake",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Lean Beef Bolognese",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Recovery Walk"
+        },
+        {
+          "day": "Friday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Apple & Mixed Nuts",
+          "lunch": "Chicken & Broccoli Bake",
+          "snack2": "Protein Shake",
+          "dinner": "Lean Beef Bolognese",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Full Body"
+        },
+        {
+          "day": "Saturday",
+          "breakfast": "Eggs & Smoked Salmon Bagel",
+          "snack1": "Protein Shake",
+          "lunch": "Chicken & Broccoli Bake",
+          "snack2": "Greek Yogurt",
+          "dinner": "Steak & Potatoes",
+          "snack3": "Whole Milk",
+          "training": "Swimming"
+        },
+        {
+          "day": "Sunday",
+          "breakfast": "Eggs, Bacon & Wholemeal Toast",
+          "snack1": "Fruit & Mixed Nuts",
+          "lunch": "Roast Chicken & Potatoes",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Roast Chicken & Vegetables",
+          "snack3": "Whole Milk",
+          "training": "Meal Prep"
+        }
+      ]
+    },
+    {
+      "week": 3,
+      "title": "Turkey Meatballs & Beef Stew",
+      "prep": [
+        "Turkey Meatballs",
+        "Traditional Beef Stew",
+        "Overnight Oats",
+        "Cottage Cheese Pot"
+      ],
+      "days": [
+        {
+          "day": "Monday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Turkey Meatballs & Pasta",
+          "snack2": "Cottage Cheese Pot",
+          "dinner": "Traditional Beef Stew",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Upper Body"
+        },
+        {
+          "day": "Tuesday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Apple & Mixed Nuts",
+          "lunch": "Turkey Meatballs & Pasta",
+          "snack2": "Cottage Cheese Pot",
+          "dinner": "Traditional Beef Stew",
+          "snack3": "Whole Milk",
+          "training": "Swimming"
+        },
+        {
+          "day": "Wednesday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Turkey Meatballs & Pasta",
+          "snack2": "Protein Shake",
+          "dinner": "Traditional Beef Stew",
+          "snack3": "Cottage Cheese Pot",
+          "training": "Lower Body"
+        },
+        {
+          "day": "Thursday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Turkey Meatballs & Pasta",
+          "snack2": "Cottage Cheese Pot",
+          "dinner": "Traditional Beef Stew",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Recovery Walk"
+        },
+        {
+          "day": "Friday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Apple & Mixed Nuts",
+          "lunch": "Turkey Meatballs & Pasta",
+          "snack2": "Protein Shake",
+          "dinner": "Traditional Beef Stew",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Full Body"
+        },
+        {
+          "day": "Saturday",
+          "breakfast": "Eggs & Smoked Salmon Bagel",
+          "snack1": "Protein Shake",
+          "lunch": "Turkey Meatballs & Pasta",
+          "snack2": "Greek Yogurt",
+          "dinner": "Steak & Potatoes",
+          "snack3": "Whole Milk",
+          "training": "Swimming"
+        },
+        {
+          "day": "Sunday",
+          "breakfast": "Eggs, Bacon & Wholemeal Toast",
+          "snack1": "Fruit & Mixed Nuts",
+          "lunch": "Roast Chicken & Potatoes",
+          "snack2": "Cottage Cheese Pot",
+          "dinner": "Roast Chicken & Vegetables",
+          "snack3": "Whole Milk",
+          "training": "Meal Prep"
+        }
+      ]
+    },
+    {
+      "week": 4,
+      "title": "Greek Chicken & Chicken Lentil Stew",
+      "prep": [
+        "Greek Chicken",
+        "Chicken Lentil Stew",
+        "Overnight Oats",
+        "Skyr Protein Pot"
+      ],
+      "days": [
+        {
+          "day": "Monday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Greek Chicken & Rice",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Chicken Lentil Stew",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Upper Body"
+        },
+        {
+          "day": "Tuesday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Apple & Mixed Nuts",
+          "lunch": "Greek Chicken & Rice",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Chicken Lentil Stew",
+          "snack3": "Whole Milk",
+          "training": "Swimming"
+        },
+        {
+          "day": "Wednesday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Greek Chicken & Rice",
+          "snack2": "Protein Shake",
+          "dinner": "Chicken Lentil Stew",
+          "snack3": "Cottage Cheese",
+          "training": "Lower Body"
+        },
+        {
+          "day": "Thursday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Banana & Mixed Nuts",
+          "lunch": "Greek Chicken & Rice",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Chicken Lentil Stew",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Recovery Walk"
+        },
+        {
+          "day": "Friday",
+          "breakfast": "Overnight Oats with Skyr",
+          "snack1": "Apple & Mixed Nuts",
+          "lunch": "Greek Chicken & Rice",
+          "snack2": "Protein Shake",
+          "dinner": "Chicken Lentil Stew",
+          "snack3": "Peanut Butter Toast & Whole Milk",
+          "training": "Full Body"
+        },
+        {
+          "day": "Saturday",
+          "breakfast": "Eggs & Smoked Salmon Bagel",
+          "snack1": "Protein Shake",
+          "lunch": "Greek Chicken & Rice",
+          "snack2": "Greek Yogurt",
+          "dinner": "Steak & Potatoes",
+          "snack3": "Whole Milk",
+          "training": "Swimming"
+        },
+        {
+          "day": "Sunday",
+          "breakfast": "Eggs, Bacon & Wholemeal Toast",
+          "snack1": "Fruit & Mixed Nuts",
+          "lunch": "Roast Chicken & Potatoes",
+          "snack2": "Skyr Protein Pot",
+          "dinner": "Roast Chicken & Vegetables",
+          "snack3": "Whole Milk",
+          "training": "Meal Prep"
+        }
+      ]
+    }
+  ]
+}
