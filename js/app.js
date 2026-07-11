@@ -181,8 +181,16 @@ function updateMealProgress(day) {
    measurements you've logged). Flip to preview the Goal build.
    ============================================================ */
 let PHYS_FACE = "now";
-const BASELINE = { muscle: 0.30, lean: 0.35, mass: 0.42 };
-const DEFAULT_GOAL = { muscle: 0.85, lean: 0.80, mass: 0.62 };
+
+// Body-shape presets: how weight sits on the frame. Height+weight (BMI)
+// set overall mass; the selected build sets muscle and leanness.
+const SHAPES = {
+  unfit:    { label: "Unfit",    muscle: 0.12, lean: 0.18 },
+  average:  { label: "Average",  muscle: 0.35, lean: 0.45 },
+  athletic: { label: "Athletic", muscle: 0.60, lean: 0.72 },
+  muscular: { label: "Muscular", muscle: 0.85, lean: 0.75 },
+  bulky:    { label: "Bulky",    muscle: 0.92, lean: 0.35 },
+};
 
 function clamp01(v) { return Math.max(0, Math.min(1, v)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
@@ -191,16 +199,12 @@ function bmi(weight, height) {
   const m = height / 100;
   return weight / (m * m);
 }
-function buildFromMeasures(weight, arms, waist, height) {
-  // With height known, overall mass comes from BMI (honest for any height);
-  // otherwise fall back to a raw-weight estimate.
+function massFrom(weight, height) {
+  // Average body volume for a person of this height and weight (BMI-based);
+  // raw-weight fallback when height isn't recorded yet.
   const b = bmi(weight, height);
-  return {
-    muscle: arms != null ? clamp01((arms - 28) / 18) : null,
-    lean:   waist != null ? clamp01((96 - waist) / 20) : null,
-    mass:   b != null ? clamp01((b - 19) / 13)
-          : weight != null ? clamp01((weight - 65) / 40) : null,
-  };
+  if (b != null) return clamp01((b - 19) / 13);
+  return weight != null ? clamp01((weight - 65) / 40) : null;
 }
 
 function setupPhysique() {
@@ -229,42 +233,70 @@ function getPhysiqueParams() {
   const height = meas.height != null ? meas.height : null;
   // stature 0..1 over 165–195cm; default mid if height unknown
   const stature = height != null ? clamp01((height - 165) / 30) : 0.5;
+  const fem = TitanStorage.load("sex", "male") === "female" ? 1 : 0;
 
-  // Goal build — from goal numbers, falling back to a lean/muscular default.
-  const g = buildFromMeasures(goalWeight, goals.arms, goals.waist, height);
+  // Same system for both sides: average frame for height+weight (mass),
+  // shaped by the selected build (muscle/lean).
+  const shapeNowKey = TitanStorage.load("shapeNow", "average");
+  const shapeGoalKey = goals.shape || "muscular";
+  const sNow = SHAPES[shapeNowKey] || SHAPES.average;
+  const sGoal = SHAPES[shapeGoalKey] || SHAPES.muscular;
+
+  const nowMass = massFrom(current, height);
+  const goalMass = massFrom(goalWeight, height);
+
+  const now = {
+    muscle: sNow.muscle, lean: sNow.lean,
+    mass: nowMass != null ? nowMass : 0.45,
+    stature, fem,
+  };
   const goal = {
-    muscle: g.muscle != null ? g.muscle : DEFAULT_GOAL.muscle,
-    lean:   g.lean   != null ? g.lean   : DEFAULT_GOAL.lean,
-    mass:   g.mass   != null ? g.mass   : DEFAULT_GOAL.mass,
-    stature,
+    muscle: sGoal.muscle, lean: sGoal.lean,
+    mass: goalMass != null ? goalMass : (nowMass != null ? nowMass : 0.5),
+    stature, fem,
   };
 
-  // Progress along the bodyweight path from start → goal.
+  // Progress along the bodyweight path from start → goal (for the chips).
   let progress = 0;
   if (start != null && current != null && goalWeight != null && goalWeight !== start) {
     progress = Math.max(0, Math.min(1, (current - start) / (goalWeight - start)));
-  } else if (current != null && start != null && start !== 0) {
-    // No goal set yet: a gentle nudge from raw weight change so it still moves.
-    progress = Math.max(0, Math.min(1, Math.abs(current - start) / start * 3));
   }
-
-  // Now build morphs baseline → goal by weight progress …
-  let now = {
-    muscle: lerp(BASELINE.muscle, goal.muscle, progress),
-    lean:   lerp(BASELINE.lean,   goal.lean,   progress),
-    mass:   lerp(BASELINE.mass,   goal.mass,   progress),
-    stature,
-  };
-  // … then a light 30% nudge from any current measurements you've logged.
-  const cm = buildFromMeasures(current, meas.arms, meas.waist, height);
-  ["muscle", "lean", "mass"].forEach(k => {
-    if (cm[k] != null) now[k] = lerp(now[k], cm[k], 0.3);
-  });
 
   return {
     now, goal,
-    meta: { start, current, goalWeight, height, progress, hasGoal: goalWeight != null, hasData: current != null },
+    meta: {
+      start, current, goalWeight, height, progress,
+      shapeNow: shapeNowKey, shapeGoal: shapeGoalKey,
+      hasGoal: goalWeight != null, hasData: current != null,
+    },
   };
+}
+
+/* --- build selector chip rows (shared by Today + Stats) --- */
+function renderShapeChips(el, activeKey, onPick) {
+  if (!el) return;
+  el.innerHTML = "";
+  Object.entries(SHAPES).forEach(([key, s]) => {
+    const c = document.createElement("button");
+    c.className = "chip sm" + (key === activeKey ? " active" : "");
+    c.textContent = s.label;
+    c.addEventListener("click", () => onPick(key));
+    el.appendChild(c);
+  });
+}
+
+function renderNowShapeRow() {
+  renderShapeChips(
+    document.getElementById("shapeNowRow"),
+    TitanStorage.load("shapeNow", "average"),
+    key => {
+      TitanStorage.save("shapeNow", key);
+      const p = getPhysiqueParams();
+      window.PHYS = p;
+      if (window.Physique3D) Physique3D.morphTo(PHYS_FACE === "now" ? p.now : p.goal, 700);
+      renderNowShapeRow();
+      updatePhysiqueCaption();
+    });
 }
 
 async function renderPhysique() {
@@ -274,6 +306,7 @@ async function renderPhysique() {
   window.PHYS = p;
   const ok = await Physique3D.mount(canvas);
   if (ok) Physique3D.setParams(PHYS_FACE === "now" ? p.now : p.goal);
+  renderNowShapeRow();
   updatePhysiqueCaption();
 }
 
@@ -305,11 +338,12 @@ function updatePhysiqueCaption() {
     }
     const toGo = (m.goalWeight - m.current);
     const sign = toGo > 0 ? "+" : "";
+    const gLabel = (SHAPES[m.shapeGoal] || SHAPES.muscular).label;
     wrap.innerHTML =
       `<div class="physique-chips">
          ${chip(m.goalWeight + " kg", "Goal")}
          ${chip(sign + toGo.toFixed(1) + " kg", "To go")}
-         ${chip("Lean", "Target build")}
+         ${chip(gLabel, "Target build")}
        </div>`;
   }
 }
@@ -538,22 +572,50 @@ function renderProgress() {
   renderMeasureStat(m);
 
   const goals = TitanStorage.load("goals", {});
-  ["weight", "chest", "waist", "arms"].forEach(k => {
-    const el = document.getElementById("g-" + k);
-    if (el && goals[k] != null) el.value = goals[k];
-  });
+  const gw = document.getElementById("g-weight");
+  if (gw && goals.weight != null) gw.value = goals.weight;
   renderGoalStat(goals);
 
-  document.getElementById("saveGoalBtn").onclick = () => {
-    const data = {};
-    ["weight", "chest", "waist", "arms"].forEach(k => {
-      const v = parseFloat(document.getElementById("g-" + k).value);
-      if (!isNaN(v)) data[k] = v;
+  // goal build selector
+  const drawGoalChips = () => {
+    const g = TitanStorage.load("goals", {});
+    renderShapeChips(document.getElementById("goalShapeRow"), g.shape || "muscular", key => {
+      g.shape = key;
+      TitanStorage.save("goals", g);
+      drawGoalChips();
+      renderPhysique();
     });
-    if (data.weight == null) { toast("Enter a goal weight"); return; }
-    data.date = new Date().toISOString();
-    TitanStorage.save("goals", data);
-    renderGoalStat(data);
+  };
+  drawGoalChips();
+
+  // sex selector — proportions differ, so the model needs to know
+  const drawSexChips = () => {
+    const cur = TitanStorage.load("sex", "male");
+    const row = document.getElementById("sexRow");
+    if (!row) return;
+    row.innerHTML = "";
+    [["male", "Male"], ["female", "Female"]].forEach(([key, label]) => {
+      const c = document.createElement("button");
+      c.className = "chip sm" + (key === cur ? " active" : "");
+      c.textContent = label;
+      c.addEventListener("click", () => {
+        TitanStorage.save("sex", key);
+        drawSexChips();
+        renderPhysique();
+      });
+      row.appendChild(c);
+    });
+  };
+  drawSexChips();
+
+  document.getElementById("saveGoalBtn").onclick = () => {
+    const g = TitanStorage.load("goals", {});
+    const v = parseFloat(document.getElementById("g-weight").value);
+    if (isNaN(v) || v <= 0) { toast("Enter a goal weight"); return; }
+    g.weight = v;
+    g.date = new Date().toISOString();
+    TitanStorage.save("goals", g);
+    renderGoalStat(g);
     renderPhysique();
     toast("Goal saved 🎯");
   };

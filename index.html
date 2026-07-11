@@ -47,6 +47,8 @@
           <canvas id="physiqueCanvas"></canvas>
         </div>
         <div class="physique-stats" id="physiqueStats"></div>
+        <p class="shape-label">Current build</p>
+        <div class="shape-row" id="shapeNowRow"></div>
       </div>
 
       <div id="todayTraining"></div>
@@ -112,6 +114,8 @@
 
       <div class="card">
         <h3>Measurements (cm)</h3>
+        <p class="shape-label">Sex (for body model)</p>
+        <div class="shape-row" id="sexRow"></div>
         <table class="measure-table">
           <tr><td>Height</td><td><input id="m-height" inputmode="decimal" placeholder="e.g. 180" /></td></tr>
           <tr><td>Chest</td><td><input id="m-chest" inputmode="decimal" /></td></tr>
@@ -128,10 +132,9 @@
         <p class="muted small">Shapes your Goal character on the Today page.</p>
         <table class="measure-table">
           <tr><td>Weight (kg)</td><td><input id="g-weight" inputmode="decimal" placeholder="e.g. 90" /></td></tr>
-          <tr><td>Chest (cm)</td><td><input id="g-chest" inputmode="decimal" placeholder="optional" /></td></tr>
-          <tr><td>Waist (cm)</td><td><input id="g-waist" inputmode="decimal" placeholder="optional" /></td></tr>
-          <tr><td>Arms (cm)</td><td><input id="g-arms" inputmode="decimal" placeholder="optional" /></td></tr>
         </table>
+        <p class="shape-label">Goal build</p>
+        <div class="shape-row" id="goalShapeRow"></div>
         <button class="primary-btn slim" id="saveGoalBtn">Save Goal</button>
         <p class="muted small" id="goalStat"></p>
       </div>
