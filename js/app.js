@@ -184,14 +184,27 @@ let PHYS_FACE = "now";
 const BASELINE = { muscle: 0.30, lean: 0.35, mass: 0.42 };
 const DEFAULT_GOAL = { muscle: 0.85, lean: 0.80, mass: 0.62 };
 
+function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function buildFromMeasures(weight, arms, waist) {
+  return {
+    muscle: arms != null ? clamp01((arms - 28) / 18) : null,
+    lean:   waist != null ? clamp01((96 - waist) / 20) : null,
+    mass:   weight != null ? clamp01((weight - 65) / 40) : null,
+  };
+}
+
 function setupPhysique() {
   const btn = document.getElementById("flipPhysiqueBtn");
   if (!btn) return;
   btn.addEventListener("click", () => {
     PHYS_FACE = PHYS_FACE === "now" ? "goal" : "now";
-    document.getElementById("physiqueFlip").classList.toggle("flipped", PHYS_FACE === "goal");
+    document.getElementById("physiqueStage").classList.toggle("goal", PHYS_FACE === "goal");
     document.getElementById("physiqueState").textContent = PHYS_FACE === "now" ? "Now" : "Goal";
     btn.textContent = PHYS_FACE === "now" ? "See Goal →" : "← Back to Now";
+    if (window.PHYS && window.Physique3D) {
+      Physique3D.morphTo(PHYS_FACE === "now" ? window.PHYS.now : window.PHYS.goal, 1100);
+    }
     updatePhysiqueCaption();
   });
 }
@@ -240,14 +253,13 @@ function getPhysiqueParams() {
   };
 }
 
-function renderPhysique() {
-  const nowEl = document.getElementById("avatarNow");
-  const goalEl = document.getElementById("avatarGoal");
-  if (!nowEl) return;
+async function renderPhysique() {
+  const canvas = document.getElementById("physiqueCanvas");
+  if (!canvas || !window.Physique3D) return;
   const p = getPhysiqueParams();
   window.PHYS = p;
-  nowEl.innerHTML = buildAvatar(p.now, "av-now");
-  goalEl.innerHTML = buildAvatar(p.goal, "av-goal");
+  const ok = await Physique3D.mount(canvas);
+  if (ok) Physique3D.setParams(PHYS_FACE === "now" ? p.now : p.goal);
   updatePhysiqueCaption();
 }
 
