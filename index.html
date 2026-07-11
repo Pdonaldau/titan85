@@ -33,6 +33,25 @@
 
     <!-- Dashboard -->
     <section class="view active" id="view-today">
+
+      <!-- Physique skin -->
+      <div class="card physique-card">
+        <div class="physique-head">
+          <div>
+            <div class="label">Your Physique</div>
+            <div class="pstate" id="physiqueState">Now</div>
+          </div>
+          <button class="ghost-btn" id="flipPhysiqueBtn">See Goal →</button>
+        </div>
+        <div class="physique-flip" id="physiqueFlip">
+          <div class="physique-inner">
+            <div class="physique-face front" id="avatarNow"></div>
+            <div class="physique-face back" id="avatarGoal"></div>
+          </div>
+        </div>
+        <div class="physique-stats" id="physiqueStats"></div>
+      </div>
+
       <div id="todayTraining"></div>
       <h2 class="section-title">Today's Meals</h2>
       <div id="mealList" class="stack"></div>
@@ -105,6 +124,19 @@
         <button class="primary-btn slim" id="saveMeasureBtn">Save Measurements</button>
         <p class="muted small" id="measureStat"></p>
       </div>
+
+      <div class="card">
+        <h3>Your Goal</h3>
+        <p class="muted small">Shapes your Goal character on the Today page.</p>
+        <table class="measure-table">
+          <tr><td>Weight (kg)</td><td><input id="g-weight" inputmode="decimal" placeholder="e.g. 90" /></td></tr>
+          <tr><td>Chest (cm)</td><td><input id="g-chest" inputmode="decimal" placeholder="optional" /></td></tr>
+          <tr><td>Waist (cm)</td><td><input id="g-waist" inputmode="decimal" placeholder="optional" /></td></tr>
+          <tr><td>Arms (cm)</td><td><input id="g-arms" inputmode="decimal" placeholder="optional" /></td></tr>
+        </table>
+        <button class="primary-btn slim" id="saveGoalBtn">Save Goal</button>
+        <p class="muted small" id="goalStat"></p>
+      </div>
     </section>
 
   </main>
@@ -124,6 +156,7 @@
 
   <script src="js/storage.js"></script>
   <script src="js/charts.js"></script>
+  <script src="js/avatar.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -47,7 +47,9 @@ async function boot() {
   SPLIT = DATA.workouts.splits[0].id;
 
   setupNav();
+  setupPhysique();
   renderToday();
+  renderPhysique();
   renderPlan();
   renderRecipes();
   renderShopping();
@@ -92,6 +94,7 @@ function switchView(view) {
   document.getElementById("view-" + view).classList.add("active");
   document.querySelector(`.tab[data-view="${view}"]`).classList.add("active");
   document.getElementById("headerTitle").textContent = TITLES[view];
+  if (view === "today") renderPhysique();
   if (view === "progress") drawWeightChart(TitanStorage.load("history", []));
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
 }
@@ -169,6 +172,120 @@ function updateMealProgress(day) {
   const done = MEAL_SLOTS.filter(([, k]) => day[k] && checks[k]).length;
   document.getElementById("mealProgressLabel").textContent = `${done} of ${total}`;
   document.getElementById("mealProgressBar").style.width = (total ? (done / total) * 100 : 0) + "%";
+}
+
+/* ============================================================
+   PHYSIQUE SKIN
+   A stylized character whose build is driven by bodyweight
+   progress toward your goal (with a light nudge from any
+   measurements you've logged). Flip to preview the Goal build.
+   ============================================================ */
+let PHYS_FACE = "now";
+const BASELINE = { muscle: 0.30, lean: 0.35, mass: 0.42 };
+const DEFAULT_GOAL = { muscle: 0.85, lean: 0.80, mass: 0.62 };
+
+function setupPhysique() {
+  const btn = document.getElementById("flipPhysiqueBtn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    PHYS_FACE = PHYS_FACE === "now" ? "goal" : "now";
+    document.getElementById("physiqueFlip").classList.toggle("flipped", PHYS_FACE === "goal");
+    document.getElementById("physiqueState").textContent = PHYS_FACE === "now" ? "Now" : "Goal";
+    btn.textContent = PHYS_FACE === "now" ? "See Goal →" : "← Back to Now";
+    updatePhysiqueCaption();
+  });
+}
+
+function getPhysiqueParams() {
+  const history = TitanStorage.load("history", []);
+  const meas = TitanStorage.load("measurements", {});
+  const goals = TitanStorage.load("goals", {});
+
+  const start = history.length ? history[0].weight : null;
+  const current = history.length ? history[history.length - 1].weight : null;
+  const goalWeight = goals.weight != null ? goals.weight : null;
+
+  // Goal build — from goal numbers, falling back to a lean/muscular default.
+  const g = buildFromMeasures(goalWeight, goals.arms, goals.waist);
+  const goal = {
+    muscle: g.muscle != null ? g.muscle : DEFAULT_GOAL.muscle,
+    lean:   g.lean   != null ? g.lean   : DEFAULT_GOAL.lean,
+    mass:   g.mass   != null ? g.mass   : DEFAULT_GOAL.mass,
+  };
+
+  // Progress along the bodyweight path from start → goal.
+  let progress = 0;
+  if (start != null && current != null && goalWeight != null && goalWeight !== start) {
+    progress = Math.max(0, Math.min(1, (current - start) / (goalWeight - start)));
+  } else if (current != null && start != null && start !== 0) {
+    // No goal set yet: a gentle nudge from raw weight change so it still moves.
+    progress = Math.max(0, Math.min(1, Math.abs(current - start) / start * 3));
+  }
+
+  // Now build morphs baseline → goal by weight progress …
+  let now = {
+    muscle: lerp(BASELINE.muscle, goal.muscle, progress),
+    lean:   lerp(BASELINE.lean,   goal.lean,   progress),
+    mass:   lerp(BASELINE.mass,   goal.mass,   progress),
+  };
+  // … then a light 30% nudge from any current measurements you've logged.
+  const cm = buildFromMeasures(current, meas.arms, meas.waist);
+  ["muscle", "lean", "mass"].forEach(k => {
+    if (cm[k] != null) now[k] = lerp(now[k], cm[k], 0.3);
+  });
+
+  return {
+    now, goal,
+    meta: { start, current, goalWeight, progress, hasGoal: goalWeight != null, hasData: current != null },
+  };
+}
+
+function renderPhysique() {
+  const nowEl = document.getElementById("avatarNow");
+  const goalEl = document.getElementById("avatarGoal");
+  if (!nowEl) return;
+  const p = getPhysiqueParams();
+  window.PHYS = p;
+  nowEl.innerHTML = buildAvatar(p.now, "av-now");
+  goalEl.innerHTML = buildAvatar(p.goal, "av-goal");
+  updatePhysiqueCaption();
+}
+
+function updatePhysiqueCaption() {
+  const wrap = document.getElementById("physiqueStats");
+  if (!wrap || !window.PHYS) return;
+  const m = window.PHYS.meta;
+  const chip = (v, label) => `<div class="pchip"><b>${v}</b><span>${label}</span></div>`;
+
+  if (PHYS_FACE === "now") {
+    if (!m.hasData) {
+      wrap.innerHTML = `<p class="muted small physique-hint">Log your bodyweight on the <b>Stats</b> tab to bring your character to life.</p>`;
+      return;
+    }
+    const delta = (m.current - m.start);
+    const sign = delta > 0 ? "+" : "";
+    const pct = Math.round(m.progress * 100);
+    wrap.innerHTML =
+      `<div class="physique-chips">
+         ${chip(m.current + " kg", "Current")}
+         ${chip(sign + delta.toFixed(1) + " kg", "Since start")}
+         ${chip(m.hasGoal ? pct + "%" : "—", "To goal")}
+       </div>
+       ${m.hasGoal ? `<div class="physique-bar"><span style="width:${pct}%"></span></div>` : ""}`;
+  } else {
+    if (!m.hasGoal) {
+      wrap.innerHTML = `<p class="muted small physique-hint">Set a goal weight under <b>Stats › Your Goal</b> to personalise this build.</p>`;
+      return;
+    }
+    const toGo = (m.goalWeight - m.current);
+    const sign = toGo > 0 ? "+" : "";
+    wrap.innerHTML =
+      `<div class="physique-chips">
+         ${chip(m.goalWeight + " kg", "Goal")}
+         ${chip(sign + toGo.toFixed(1) + " kg", "To go")}
+         ${chip("Lean", "Target build")}
+       </div>`;
+  }
 }
 
 /* ============================================================
@@ -394,6 +511,27 @@ function renderProgress() {
   });
   renderMeasureStat(m);
 
+  const goals = TitanStorage.load("goals", {});
+  ["weight", "chest", "waist", "arms"].forEach(k => {
+    const el = document.getElementById("g-" + k);
+    if (el && goals[k] != null) el.value = goals[k];
+  });
+  renderGoalStat(goals);
+
+  document.getElementById("saveGoalBtn").onclick = () => {
+    const data = {};
+    ["weight", "chest", "waist", "arms"].forEach(k => {
+      const v = parseFloat(document.getElementById("g-" + k).value);
+      if (!isNaN(v)) data[k] = v;
+    });
+    if (data.weight == null) { toast("Enter a goal weight"); return; }
+    data.date = new Date().toISOString();
+    TitanStorage.save("goals", data);
+    renderGoalStat(data);
+    renderPhysique();
+    toast("Goal saved 🎯");
+  };
+
   document.getElementById("saveWeightBtn").onclick = () => {
     const val = parseFloat(document.getElementById("currentWeight").value);
     if (isNaN(val) || val <= 0) { toast("Enter a valid weight"); return; }
@@ -403,6 +541,7 @@ function renderProgress() {
     document.getElementById("currentWeight").value = "";
     drawWeightChart(h);
     renderWeightStat(h);
+    renderPhysique();
     toast("Weight saved");
   };
 
@@ -415,8 +554,16 @@ function renderProgress() {
     data.date = new Date().toISOString();
     TitanStorage.save("measurements", data);
     renderMeasureStat(data);
+    renderPhysique();
     toast("Measurements saved");
   };
+}
+function renderGoalStat(g) {
+  const el = document.getElementById("goalStat");
+  if (!el) return;
+  el.textContent = g.weight != null
+    ? `Goal ${g.weight}kg set — see your Goal character on the Today tab.`
+    : "";
 }
 function renderWeightStat(h) {
   const el = document.getElementById("weightStat");
