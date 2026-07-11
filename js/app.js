@@ -186,11 +186,20 @@ const DEFAULT_GOAL = { muscle: 0.85, lean: 0.80, mass: 0.62 };
 
 function clamp01(v) { return Math.max(0, Math.min(1, v)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
-function buildFromMeasures(weight, arms, waist) {
+function bmi(weight, height) {
+  if (weight == null || !height) return null;
+  const m = height / 100;
+  return weight / (m * m);
+}
+function buildFromMeasures(weight, arms, waist, height) {
+  // With height known, overall mass comes from BMI (honest for any height);
+  // otherwise fall back to a raw-weight estimate.
+  const b = bmi(weight, height);
   return {
     muscle: arms != null ? clamp01((arms - 28) / 18) : null,
     lean:   waist != null ? clamp01((96 - waist) / 20) : null,
-    mass:   weight != null ? clamp01((weight - 65) / 40) : null,
+    mass:   b != null ? clamp01((b - 19) / 13)
+          : weight != null ? clamp01((weight - 65) / 40) : null,
   };
 }
 
@@ -217,13 +226,17 @@ function getPhysiqueParams() {
   const start = history.length ? history[0].weight : null;
   const current = history.length ? history[history.length - 1].weight : null;
   const goalWeight = goals.weight != null ? goals.weight : null;
+  const height = meas.height != null ? meas.height : null;
+  // stature 0..1 over 165–195cm; default mid if height unknown
+  const stature = height != null ? clamp01((height - 165) / 30) : 0.5;
 
   // Goal build — from goal numbers, falling back to a lean/muscular default.
-  const g = buildFromMeasures(goalWeight, goals.arms, goals.waist);
+  const g = buildFromMeasures(goalWeight, goals.arms, goals.waist, height);
   const goal = {
     muscle: g.muscle != null ? g.muscle : DEFAULT_GOAL.muscle,
     lean:   g.lean   != null ? g.lean   : DEFAULT_GOAL.lean,
     mass:   g.mass   != null ? g.mass   : DEFAULT_GOAL.mass,
+    stature,
   };
 
   // Progress along the bodyweight path from start → goal.
@@ -240,16 +253,17 @@ function getPhysiqueParams() {
     muscle: lerp(BASELINE.muscle, goal.muscle, progress),
     lean:   lerp(BASELINE.lean,   goal.lean,   progress),
     mass:   lerp(BASELINE.mass,   goal.mass,   progress),
+    stature,
   };
   // … then a light 30% nudge from any current measurements you've logged.
-  const cm = buildFromMeasures(current, meas.arms, meas.waist);
+  const cm = buildFromMeasures(current, meas.arms, meas.waist, height);
   ["muscle", "lean", "mass"].forEach(k => {
     if (cm[k] != null) now[k] = lerp(now[k], cm[k], 0.3);
   });
 
   return {
     now, goal,
-    meta: { start, current, goalWeight, progress, hasGoal: goalWeight != null, hasData: current != null },
+    meta: { start, current, goalWeight, height, progress, hasGoal: goalWeight != null, hasData: current != null },
   };
 }
 
@@ -517,7 +531,7 @@ function renderProgress() {
   renderWeightStat(history);
 
   const m = TitanStorage.load("measurements", {});
-  ["chest", "waist", "arms", "thighs"].forEach(k => {
+  ["height", "chest", "waist", "arms", "thighs"].forEach(k => {
     const el = document.getElementById("m-" + k);
     if (m[k] != null) el.value = m[k];
   });
@@ -559,7 +573,7 @@ function renderProgress() {
 
   document.getElementById("saveMeasureBtn").onclick = () => {
     const data = {};
-    ["chest", "waist", "arms", "thighs"].forEach(k => {
+    ["height", "chest", "waist", "arms", "thighs"].forEach(k => {
       const v = parseFloat(document.getElementById("m-" + k).value);
       if (!isNaN(v)) data[k] = v;
     });
@@ -584,9 +598,12 @@ function renderWeightStat(h) {
   const first = h[0].weight;
   const diff = (latest - first).toFixed(1);
   const sign = diff > 0 ? "+" : "";
+  const height = TitanStorage.load("measurements", {}).height;
+  const b = bmi(latest, height);
+  const bmiTxt = b != null ? ` · BMI ${b.toFixed(1)}` : "";
   el.textContent = h.length > 1
-    ? `Latest ${latest}kg · ${sign}${diff}kg since start (${h.length} entries)`
-    : `Latest ${latest}kg`;
+    ? `Latest ${latest}kg${bmiTxt} · ${sign}${diff}kg since start (${h.length} entries)`
+    : `Latest ${latest}kg${bmiTxt}`;
 }
 function renderMeasureStat(m) {
   const el = document.getElementById("measureStat");

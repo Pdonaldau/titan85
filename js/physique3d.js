@@ -1,310 +1,224 @@
 /* ============================================================
-   Titan85 — 3D physique mannequin
-   A parametric human body mesh built entirely in code and
-   rendered with Three.js (bundled locally — fully offline).
-   The body shape is a continuous function of three params:
-     muscle 0..1 — shoulders, chest, arms, calves, traps
-     lean   0..1 — waist taper, belly reduction
-     mass   0..1 — overall size, hips, thighs, neck
+   Titan85 — 3D physique renderer (SDF raymarching)
+   The body is ONE continuous signed-distance field: torso, limbs,
+   glutes and joints blend smoothly into each other (smooth-min),
+   so there are no seams or "stuck-on" parts anywhere. Rendered in
+   a fragment shader on a fullscreen quad via Three.js (bundled,
+   fully offline). Shape params (all 0..1):
+     muscle  — shoulders, chest, arms, calves, traps
+     lean    — waist taper, belly reduction
+     mass    — overall size, hips, thighs, neck
+     stature — from user height; stretches the legs
+   Morphing is free: params are shader uniforms, tweened per frame.
    Exposes window.Physique3D = { mount, setParams, morphTo }.
    ============================================================ */
 (function () {
   "use strict";
 
   let THREE = null;
-  let renderer, scene, camera, bodyGroup, material;
+  let renderer, scene, camera, quadMat;
   let canvasEl = null;
-  let cur = { muscle: 0.3, lean: 0.35, mass: 0.42 };
-  let tween = null;   // { from, to, t0, dur }
-  let dirty = true;
+  let cur = { muscle: 0.3, lean: 0.35, mass: 0.42, stature: 0.5 };
+  let tween = null;
   let running = false;
 
   const clamp01 = v => Math.max(0, Math.min(1, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-  /* ---------- geometry helpers ---------- */
+  const VERT = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position.xy, 0.0, 1.0);
+    }`;
 
-  // Smooth an array of numbers in place-ish (simple neighbour averaging).
-  function smooth(arr, passes) {
-    let a = arr.slice();
-    for (let p = 0; p < passes; p++) {
-      const b = a.slice();
-      for (let i = 1; i < a.length - 1; i++) b[i] = (a[i - 1] + a[i] * 2 + a[i + 1]) / 4;
-      a = b;
+  const FRAG = `
+    precision highp float;
+    varying vec2 vUv;
+    uniform float uAspect, uRot, uBreath;
+    uniform float uMuscle, uLean, uMass, uStature;
+
+    float smin(float a, float b, float k) {
+      float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+      return mix(b, a, h) - k * h * (1.0 - h);
     }
-    return a;
-  }
+    float sdEllipsoid(vec3 p, vec3 r) {
+      float k0 = length(p / r);
+      float k1 = length(p / (r * r));
+      return k0 * (k0 - 1.0) / k1;
+    }
+    // capsule with different end radii (iq's round cone)
+    float sdRoundCone(vec3 p, vec3 a, vec3 b, float r1, float r2) {
+      vec3 ba = b - a;
+      float l2 = dot(ba, ba);
+      float rr = r1 - r2;
+      float a2 = l2 - rr * rr;
+      float il2 = 1.0 / l2;
+      vec3 pa = p - a;
+      float y = dot(pa, ba);
+      float z = y - l2;
+      vec3 xv = pa * l2 - ba * y;
+      float x2 = dot(xv, xv);
+      float y2 = y * y * l2;
+      float z2 = z * z * l2;
+      float k = sign(rr) * rr * rr * x2;
+      if (sign(z) * a2 * z2 > k) return sqrt(x2 + z2) * il2 - r2;
+      if (sign(y) * a2 * y2 < k) return sqrt(x2 + y2) * il2 - r1;
+      return (sqrt(x2 * a2 * il2) + y * rr) * il2 - r1;
+    }
 
-  // Linear interpolation over (y, value) stations for a given y.
-  function stationValue(stations, y, idx) {
-    if (y <= stations[0][0]) return stations[0][idx];
-    for (let i = 0; i < stations.length - 1; i++) {
-      const [y0] = stations[i], [y1] = stations[i + 1];
-      if (y >= y0 && y <= y1) {
-        const t = (y - y0) / (y1 - y0);
-        return lerp(stations[i][idx], stations[i + 1][idx], t);
+    // ---- the whole body as one smoothly-blended distance field ----
+    float map(vec3 pw) {
+      float c = cos(uRot), s = sin(uRot);
+      vec3 p = vec3(c * pw.x + s * pw.z, pw.y, -s * pw.x + c * pw.z);
+      float M = uMuscle, L = uLean, W = uMass, St = uStature;
+      // muscular kilos sit on shoulders/chest/arms, not hips — split W
+      float WL = W * (1.0 - 0.45 * M);   // lower-body mass
+      float belly = max(0.0, 3.2 * W - 4.2 * L + 1.2);
+      float breath = 1.0 + uBreath;
+      vec3 q = vec3(abs(p.x), p.y, p.z);
+
+      // torso core
+      float d = sdEllipsoid(p - vec3(0.0, 55.0, -0.8), vec3(8.8 + 1.8*WL, 6.8, 6.0 + 1.2*WL));                     // pelvis
+      d = smin(d, sdEllipsoid(p - vec3(0.0, 65.5, 0.1 + 0.4*belly),
+                 vec3(9.4 + 3.0*W - 2.0*L + 0.6*M, 8.5, 5.2 + 2.0*W - 1.6*L + 0.9*belly)), 3.5);                  // waist/belly
+      d = smin(d, sdEllipsoid(p - vec3(0.0, 81.0, 0.6 + 0.8*M),
+                 vec3((10.8 + 3.4*M + 1.0*W) * breath, 7.8, (6.4 + 1.6*M + 0.6*W) * breath)), 5.0);               // chest — broad slab, sits proud of the belly
+      float sw = 8.2 + 5.2*M + 0.6*W;                                                                              // shoulder half-width
+      d = smin(d, sdRoundCone(p, vec3(-sw, 87.5, 0.2), vec3(sw, 87.5, 0.2), 3.5 + 1.0*M, 3.5 + 1.0*M), 3.0);      // shoulder bar
+      d = smin(d, sdEllipsoid(p - vec3(0.0, 88.6, -1.2), vec3(5.5 + 2.6*M, 3.2 + 0.8*M, 3.8)), 3.0);              // traps
+      d = smin(d, sdRoundCone(p, vec3(0.0, 90.0, -0.4), vec3(0.0, 97.5, -0.2), 3.4 + 0.9*M, 2.7 + 0.5*M), 2.5);   // neck
+      d = smin(d, sdEllipsoid(p - vec3(0.0, 103.3, 0.3), vec3(5.2, 6.5, 5.5)), 1.8);                              // head
+      d = smin(d, sdEllipsoid(q - vec3(4.2, 53.0, -3.0), vec3(4.2 + 0.7*WL, 5.0, 4.0 + 0.5*WL)), 3.5);            // glutes
+
+      // arms (mirrored) — deltoid, upper, forearm, hand all blended
+      vec3 shJ = vec3(sw + 0.6, 87.2, 0.2);
+      vec3 elJ = vec3(sw + 4.4 + 1.2*M, 70.5, 0.8);
+      vec3 wrJ = vec3(sw + 6.2 + 1.2*M, 55.0, 2.6);
+      d = smin(d, sdEllipsoid(q - vec3(sw + 0.7, 86.9, 0.2), vec3(3.0 + 1.8*M, 3.0 + 1.6*M, 2.9 + 1.5*M)), 2.8);  // deltoid
+      d = smin(d, sdRoundCone(q, shJ, elJ, 2.7 + 1.7*M + 0.3*W, 2.1 + 0.9*M), 2.2);                               // upper arm
+      d = smin(d, sdRoundCone(q, elJ, wrJ, 2.3 + 1.3*M, 1.5 + 0.3*M), 2.0);                                       // forearm
+      d = smin(d, sdEllipsoid(q - (wrJ + vec3(0.4, -3.6, 0.6)), vec3(1.9, 3.2, 1.3)), 1.6);                       // hand
+
+      // legs (mirrored) — thigh grows out of pelvis/glutes, calf out of shin
+      float drop = 2.5 * St;
+      vec3 hipJ = vec3(5.6 + 0.8*WL, 55.5, -0.6);
+      vec3 knJ  = vec3(6.4, 30.5 - drop, 1.2);
+      vec3 anJ  = vec3(5.6, 6.0, -0.4);
+      d = smin(d, sdRoundCone(q, hipJ, knJ, 5.2 + 1.6*WL + 1.1*M, 3.1 + 0.5*M + 0.3*WL), 3.2);                    // thigh
+      d = smin(d, sdRoundCone(q, knJ, anJ, 3.1 + 0.5*M, 1.9), 2.2);                                               // shin
+      d = smin(d, sdEllipsoid(q - vec3(6.0, 25.0 - drop, -1.6), vec3(2.1 + 0.5*M, 4.4, 2.2 + 1.0*M)), 2.4);       // calf
+      d = smin(d, sdEllipsoid(q - vec3(5.6, 2.3, 2.6), vec3(2.8, 1.7, 5.4)), 1.5);                                // foot
+      return d;
+    }
+
+    vec3 calcNormal(vec3 p) {
+      vec2 e = vec2(1.0, -1.0) * 0.5773 * 0.12;
+      return normalize(
+        e.xyy * map(p + e.xyy) + e.yyx * map(p + e.yyx) +
+        e.yxy * map(p + e.yxy) + e.xxx * map(p + e.xxx));
+    }
+
+    vec3 aces(vec3 x) {
+      return clamp(x * (2.51 * x + 0.03) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+    }
+
+    void main() {
+      // camera (matches the previous mesh version framing)
+      vec3 ro = vec3(0.0, 58.0, 192.0);
+      vec3 ta = vec3(0.0, 55.0, 0.0);
+      vec3 fw = normalize(ta - ro);
+      vec3 rt = normalize(cross(fw, vec3(0.0, 1.0, 0.0)));
+      vec3 up = cross(rt, fw);
+      vec2 ndc = vUv * 2.0 - 1.0;
+      float tanF = 0.3057;  // tan(34deg/2)
+      vec3 rd = normalize(fw + ndc.x * tanF * uAspect * rt + ndc.y * tanF * up);
+
+      // march
+      float t = 90.0;
+      float hit = -1.0;
+      for (int i = 0; i < 96; i++) {
+        vec3 pos = ro + rd * t;
+        float h = map(pos);
+        if (h < 0.05) { hit = t; break; }
+        t += h * 0.9;
+        if (t > 330.0) break;
       }
-    }
-    return stations[stations.length - 1][idx];
-  }
 
-  // Build a lofted, capped surface from horizontal elliptical rings.
-  // ringDefs: [{y, rx, rz, front (extra +z bulge), back (extra -z bulge), zc (centre z offset — posture curve)}]
-  function loft(ringDefs, radialSegs) {
-    const pos = [];
-    const idx = [];
-    const R = ringDefs.length;
+      vec3 col = vec3(0.0);
+      float alpha = 0.0;
 
-    // bottom pole (shallow so the pelvis doesn't poke down between the legs)
-    pos.push(0, ringDefs[0].y - Math.min(ringDefs[0].rx, ringDefs[0].rz) * 0.3, ringDefs[0].zc || 0);
-    const bottomPole = 0;
+      if (hit > 0.0) {
+        vec3 p = ro + rd * hit;
+        vec3 n = calcNormal(p);
+        float ao = clamp(map(p + n * 3.0) / 3.0, 0.0, 1.0) * 0.5 + 0.5;
 
-    for (let r = 0; r < R; r++) {
-      const d = ringDefs[r];
-      // taper cap rings toward the poles for rounded closure
-      for (let s = 0; s < radialSegs; s++) {
-        const th = (s / radialSegs) * Math.PI * 2;
-        const cx = Math.cos(th), sz = Math.sin(th);
-        let x = d.rx * cx;
-        let z = (d.zc || 0) + d.rz * sz;
-        if (sz > 0 && d.front) z += d.front * Math.pow(sz, 1.6);
-        if (sz < 0 && d.back) z -= d.back * Math.pow(-sz, 1.6);
-        pos.push(x, d.y, z);
-      }
-    }
+        // warm clay skin; key light well off to the side so muscle forms
+        // actually cast shading across the body instead of flat frontal light
+        vec3 albedo = vec3(0.50, 0.37, 0.28);
+        vec3 keyL = normalize(vec3(0.62, 0.58, 0.38));
+        vec3 fillL = normalize(vec3(-0.45, 0.25, 0.75));
+        vec3 rimL = normalize(vec3(-0.55, 0.30, -0.72));
 
-    // top pole
-    const last = ringDefs[R - 1];
-    pos.push(0, last.y + Math.min(last.rx, last.rz) * 0.5, last.zc || 0);
-    const topPole = pos.length / 3 - 1;
+        vec3 hemi = mix(vec3(0.10, 0.13, 0.22), vec3(0.68, 0.74, 0.90), n.y * 0.5 + 0.5) * 0.30;
+        vec3 lit = hemi;
+        lit += vec3(1.0, 0.95, 0.88) * max(dot(n, keyL), 0.0) * 0.95;
+        lit += vec3(0.48, 0.64, 1.00) * max(dot(n, fillL), 0.0) * 0.12;
+        col = albedo * lit * ao;
 
-    const ring = r => 1 + r * radialSegs; // first vertex index of ring r
+        // green rim (matches app accent)
+        float fres = pow(1.0 - max(dot(n, -rd), 0.0), 3.0);
+        col += vec3(0.13, 0.77, 0.35) * fres * (max(dot(n, rimL), 0.0) * 0.9 + 0.25) * 1.15;
 
-    // bottom fan
-    for (let s = 0; s < radialSegs; s++) {
-      idx.push(bottomPole, ring(0) + ((s + 1) % radialSegs), ring(0) + s);
-    }
-    // walls
-    for (let r = 0; r < R - 1; r++) {
-      for (let s = 0; s < radialSegs; s++) {
-        const a = ring(r) + s, b = ring(r) + ((s + 1) % radialSegs);
-        const c = ring(r + 1) + s, d2 = ring(r + 1) + ((s + 1) % radialSegs);
-        idx.push(a, b, c, b, d2, c);
-      }
-    }
-    // top fan
-    for (let s = 0; s < radialSegs; s++) {
-      idx.push(topPole, ring(R - 1) + s, ring(R - 1) + ((s + 1) % radialSegs));
-    }
+        // soft specular from key
+        vec3 hv = normalize(keyL - rd);
+        col += vec3(1.0) * pow(max(dot(n, hv), 0.0), 24.0) * 0.18;
 
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-    g.setIndex(idx);
-    g.computeVertexNormals();
-    return g;
-  }
-
-  // Tapered tube along a Catmull-Rom curve with a radius profile fn(s 0..1).
-  function taperedTube(points, radiusFn, tubularSegs, radialSegs) {
-    const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)));
-    const frames = curve.computeFrenetFrames(tubularSegs, false);
-    const pos = [], idx = [];
-    for (let i = 0; i <= tubularSegs; i++) {
-      const s = i / tubularSegs;
-      const p = curve.getPointAt(s);
-      const N = frames.normals[Math.min(i, tubularSegs - 1)];
-      const B = frames.binormals[Math.min(i, tubularSegs - 1)];
-      const r = radiusFn(s);
-      for (let j = 0; j < radialSegs; j++) {
-        const th = (j / radialSegs) * Math.PI * 2;
-        const c = Math.cos(th), sn = Math.sin(th);
-        pos.push(
-          p.x + r * (c * N.x + sn * B.x),
-          p.y + r * (c * N.y + sn * B.y),
-          p.z + r * (c * N.z + sn * B.z)
-        );
-      }
-    }
-    for (let i = 0; i < tubularSegs; i++) {
-      for (let j = 0; j < radialSegs; j++) {
-        const a = i * radialSegs + j, b = i * radialSegs + ((j + 1) % radialSegs);
-        const c = (i + 1) * radialSegs + j, d = (i + 1) * radialSegs + ((j + 1) % radialSegs);
-        idx.push(a, b, c, b, d, c);
-      }
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-    g.setIndex(idx);
-    g.computeVertexNormals();
-    return g;
-  }
-
-  // Piecewise-smooth radius profile from (s, r) stops.
-  function profile(stops) {
-    return s => {
-      if (s <= stops[0][0]) return stops[0][1];
-      for (let i = 0; i < stops.length - 1; i++) {
-        if (s >= stops[i][0] && s <= stops[i + 1][0]) {
-          const t = (s - stops[i][0]) / (stops[i + 1][0] - stops[i][0]);
-          const e = t * t * (3 - 2 * t); // smoothstep
-          return lerp(stops[i][1], stops[i + 1][1], e);
+        alpha = 1.0;
+      } else if (rd.y < -0.02) {
+        // contact shadow on the floor plane
+        float tf = (0.0 - ro.y) / rd.y;
+        vec3 fp = ro + rd * tf;
+        if (tf > 0.0 && abs(fp.x) < 60.0 && abs(fp.z) < 60.0) {
+          float d1 = map(fp + vec3(0.0, 2.0, 0.0));
+          float d2 = map(fp + vec3(0.0, 7.0, 0.0));
+          float occ = clamp(1.0 - d1 / 8.0, 0.0, 1.0) * 0.6 + clamp(1.0 - d2 / 14.0, 0.0, 1.0) * 0.4;
+          alpha = 0.62 * occ * occ;
+          col = vec3(0.0);
         }
       }
-      return stops[stops.length - 1][1];
-    };
-  }
 
-  /* ---------- the body ---------- */
-
-  function buildBody(p) {
-    const muscle = clamp01(p.muscle), lean = clamp01(p.lean), mass = clamp01(p.mass);
-    const group = new THREE.Group();
-    const add = geo => { const m = new THREE.Mesh(geo, material); group.add(m); return m; };
-
-    /* --- torso: lofted rings from pelvis (y≈48) to neck base (y≈92) --- */
-    const belly = Math.max(0, 3.2 * mass - 4.2 * lean + 1.2);
-    // stations: y, rx, rz, front bulge, back bulge, zc (posture S-curve)
-    const st = [
-      [51, 7.4 + mass * 1.5,            5.5 + mass * 0.9,  0,          0,                 -0.9],
-      [57, 11.0 + mass * 2.2,           7.2 + mass * 1.4,  belly*0.35, 0.4,               -0.7],
-      [64, 9.8 + mass * 3.8 - lean*3.2 + muscle*0.6, 6.8 + mass*2.7 - lean*2.0, belly, 0.6,  0.1],
-      [71, 10.0 + mass * 3.2 - lean*2.5 + muscle*1.2, 7.0 + mass*2.0 - lean*1.5, belly*0.75, 1.0 + muscle*0.8, 0.7],
-      [79, 11.4 + muscle * 2.6 + mass * 1.5,  7.6 + mass * 1.1,  1.0 + muscle*1.6, 1.4 + muscle*1.2, 1.2],
-      [85, 12.2 + muscle * 4.2 + mass * 0.9,  7.8 + mass * 0.7,  1.2 + muscle*2.0, 1.2 + muscle*1.4, 1.2],
-      [90, 13.0 + muscle * 6.4 + mass * 0.6,  7.4 + muscle*0.9,  0.4 + muscle*0.6, 0.8 + muscle*1.4, 0.5],
-      [92.5, (13.0 + muscle * 6.4) * 0.30,    4.6,               0,          0.3 + muscle*0.6,  -0.2],
-    ];
-    const rings = [];
-    const RN = 34;
-    const ys = [], rxs = [], rzs = [], fs = [], bs = [], zcs = [];
-    for (let i = 0; i < RN; i++) {
-      const y = lerp(st[0][0], st[st.length - 1][0], i / (RN - 1));
-      ys.push(y);
-      rxs.push(stationValue(st, y, 1));
-      rzs.push(stationValue(st, y, 2));
-      fs.push(stationValue(st, y, 3));
-      bs.push(stationValue(st, y, 4));
-      zcs.push(stationValue(st, y, 5));
-    }
-    const rxS = smooth(rxs, 3), rzS = smooth(rzs, 3), fS = smooth(fs, 2), bS = smooth(bs, 2), zcS = smooth(zcs, 3);
-    for (let i = 0; i < RN; i++) rings.push({ y: ys[i], rx: rxS[i], rz: rzS[i], front: fS[i], back: bS[i], zc: zcS[i] });
-    add(loft(rings, 36));
-
-    const shoulderRx = 13.0 + muscle * 6.4 + mass * 0.6;
-
-    /* --- neck + head (faceless mannequin) --- */
-    const neckR = 2.6 + muscle * 1.1 + mass * 0.25;
-    add(taperedTube([[0, 90.5, -0.4], [0, 95, -0.7], [0, 99, -0.3]], profile([[0, neckR + 1.4], [0.5, neckR], [1, neckR + 0.3]]), 8, 18));
-    const head = add(new THREE.SphereGeometry(5.9, 28, 22));
-    head.position.set(0, 103.4, 0.3);
-    head.scale.set(0.9, 1.12, 0.96);
-
-    /* --- arms: one continuous tapered limb, deltoid + hand built in --- */
-    const flare = 6.0 + muscle * 3.2;                // how far the arm swings out
-    const dSh = 3.1 + muscle * 2.3 + mass * 0.3;     // deltoid
-    const dBi = 2.5 + muscle * 2.3 + mass * 0.35;    // biceps
-    const dEl = 2.0 + muscle * 0.9;                  // elbow
-    const dFo = 2.2 + muscle * 1.3;                  // forearm
-    const dWr = 1.5 + muscle * 0.3;                  // wrist
-    const armX = shoulderRx - dSh * 0.55;            // rooted inside the torso wall
-    // radius profile runs shoulder→fingertips; the swell at .90 is the palm
-    const armProfile = profile([
-      [0, dSh * 0.9], [0.10, dSh], [0.22, dSh * 0.9], [0.32, dBi], [0.48, dEl],
-      [0.60, dFo], [0.78, dWr], [0.86, dWr * 0.95], [0.90, dWr * 1.25], [1, dWr * 0.5],
-    ]);
-    for (const side of [-1, 1]) {
-      const tip = [side * (armX + flare + 0.6), 45.5, 3.6];
-      add(taperedTube(
-        [[side * (armX - dSh * 0.4), 87.9, 0],
-         [side * armX, 87.6, 0.2],
-         [side * (armX + flare * 0.72), 71, 0.8],
-         [side * (armX + flare), 55, 2.8],
-         tip],
-        armProfile, 30, 18));
-      // rounded fingertip closure
-      const end = add(new THREE.SphereGeometry(dWr * 0.55, 12, 10));
-      end.position.set(tip[0], tip[1] + 0.2, tip[2]);
-      end.scale.set(1, 1.2, 0.9);
-    }
-
-    /* --- legs --- */
-    const hipX = 7.2 + mass * 0.8;
-    const tTh = 4.5 + mass * 1.5 + muscle * 1.0;   // thigh
-    const tKn = 2.9 + muscle * 0.5 + mass * 0.35;  // knee
-    const tCa = 3.0 + muscle * 1.3 + mass * 0.4;   // calf
-    const tAn = 1.8 + mass * 0.15;                 // ankle
-    const legProfile = profile([[0, tTh], [0.28, tTh * 0.88], [0.48, tKn], [0.64, tCa], [1, tAn]]);
-    for (const side of [-1, 1]) {
-      add(taperedTube(
-        [[side * (hipX - 0.3), 58, -0.7], [side * hipX, 55, -0.3], [side * (hipX + 0.3), 30, 1.6], [side * (hipX - 1.3), 5.5, -0.4]],
-        legProfile, 26, 18));
-      // foot
-      const foot = add(new THREE.SphereGeometry(2.6, 18, 14));
-      foot.position.set(side * (hipX - 1.3), 2.0, 2.6);
-      foot.scale.set(1.15, 0.6, 2.3);
-    }
-
-    return group;
-  }
-
-  /* ---------- scene ---------- */
-
-  function rebuild() {
-    if (bodyGroup) {
-      scene.remove(bodyGroup);
-      bodyGroup.traverse(o => { if (o.isMesh) o.geometry.dispose(); });
-    }
-    bodyGroup = buildBody(cur);
-    scene.add(bodyGroup);
-  }
-
-  function makeFloorShadow() {
-    const c = document.createElement("canvas");
-    c.width = c.height = 128;
-    const ctx = c.getContext("2d");
-    const g = ctx.createRadialGradient(64, 64, 6, 64, 64, 62);
-    g.addColorStop(0, "rgba(0,0,0,0.42)");
-    g.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 128, 128);
-    const tex = new THREE.CanvasTexture(c);
-    const mesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(70, 34),
-      new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
-    );
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.position.y = 0.5;
-    return mesh;
-  }
+      col = aces(col);
+      col = pow(col, vec3(1.0 / 2.2));
+      gl_FragColor = vec4(col, alpha);
+    }`;
 
   function frame(now) {
     if (!running) return;
     requestAnimationFrame(frame);
-
-    // skip work while the Today view (or the app) is hidden — saves battery
     if (document.hidden || !canvasEl.offsetParent) return;
 
-    // tween params
     if (tween) {
       const t = Math.min(1, (now - tween.t0) / tween.dur);
       const e = easeInOut(t);
       cur = {
-        muscle: lerp(tween.from.muscle, tween.to.muscle, e),
-        lean:   lerp(tween.from.lean,   tween.to.lean,   e),
-        mass:   lerp(tween.from.mass,   tween.to.mass,   e),
+        muscle:  lerp(tween.from.muscle,  tween.to.muscle,  e),
+        lean:    lerp(tween.from.lean,    tween.to.lean,    e),
+        mass:    lerp(tween.from.mass,    tween.to.mass,    e),
+        stature: lerp(tween.from.stature, tween.to.stature, e),
       };
-      dirty = true;
       if (t >= 1) tween = null;
     }
-    if (dirty) { rebuild(); dirty = false; }
 
-    // idle motion: gentle sway + breathing
     const s = now / 1000;
-    if (bodyGroup) {
-      bodyGroup.rotation.y = Math.sin(s * 0.45) * 0.38;
-      bodyGroup.scale.x = bodyGroup.scale.z = 1 + Math.sin(s * 1.15) * 0.006;
-    }
+    const u = quadMat.uniforms;
+    u.uMuscle.value = cur.muscle;
+    u.uLean.value = cur.lean;
+    u.uMass.value = cur.mass;
+    u.uStature.value = cur.stature;
+    u.uRot.value = Math.sin(s * 0.45) * 0.38;
+    u.uBreath.value = Math.sin(s * 1.15) * 0.012;
     renderer.render(scene, camera);
   }
 
@@ -312,14 +226,20 @@
     if (!canvasEl || !renderer) return;
     const w = canvasEl.clientWidth, h = canvasEl.clientHeight;
     if (!w || !h) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
     renderer.setSize(w, h, false);
     renderer.setPixelRatio(dpr);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
+    quadMat.uniforms.uAspect.value = w / h;
   }
 
-  /* ---------- public API ---------- */
+  function normParams(p) {
+    return {
+      muscle:  clamp01(p.muscle),
+      lean:    clamp01(p.lean),
+      mass:    clamp01(p.mass),
+      stature: p.stature != null ? clamp01(p.stature) : cur.stature,
+    };
+  }
 
   async function mount(canvas) {
     if (renderer) return true;
@@ -331,34 +251,25 @@
       return false;
     }
 
-    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
-
+    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(34, 1, 1, 600);
-    camera.position.set(0, 58, 185);
-    camera.lookAt(0, 54, 0);
+    camera = new THREE.Camera(); // shader does its own projection
 
-    scene.add(new THREE.HemisphereLight(0xdde7ff, 0x232f45, 1.35));
-    const key = new THREE.DirectionalLight(0xffffff, 1.6);
-    key.position.set(45, 90, 95);
-    scene.add(key);
-    const rim = new THREE.DirectionalLight(0x22c55e, 2.4);
-    rim.position.set(-70, 45, -90);
-    scene.add(rim);
-    const fill = new THREE.DirectionalLight(0x7aa2ff, 0.55);
-    fill.position.set(-40, 25, 70);
-    scene.add(fill);
-    scene.add(new THREE.AmbientLight(0x33415e, 0.5));
-
-    // DoubleSide: cap-fan winding varies per surface; culling holes are worse
-    // than the negligible cost of shading both faces of one character.
-    // Warm matte clay tone — reads organic rather than plastic mannequin.
-    material = new THREE.MeshStandardMaterial({ color: 0xd8cfc4, roughness: 0.62, metalness: 0.02, side: THREE.DoubleSide });
-
-    scene.add(makeFloorShadow());
-    rebuild();
+    quadMat = new THREE.ShaderMaterial({
+      vertexShader: VERT,
+      fragmentShader: FRAG,
+      transparent: true,
+      uniforms: {
+        uAspect:  { value: 1 },
+        uRot:     { value: 0 },
+        uBreath:  { value: 0 },
+        uMuscle:  { value: cur.muscle },
+        uLean:    { value: cur.lean },
+        uMass:    { value: cur.mass },
+        uStature: { value: cur.stature },
+      },
+    });
+    scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), quadMat));
 
     new ResizeObserver(resize).observe(canvas);
     resize();
@@ -368,19 +279,14 @@
   }
 
   function setParams(p) {
-    cur = { muscle: clamp01(p.muscle), lean: clamp01(p.lean), mass: clamp01(p.mass) };
+    cur = normParams(p);
     tween = null;
-    dirty = true;
   }
 
   function morphTo(p, dur) {
-    tween = {
-      from: { ...cur },
-      to: { muscle: clamp01(p.muscle), lean: clamp01(p.lean), mass: clamp01(p.mass) },
-      t0: performance.now(),
-      dur: dur || 900,
-    };
+    tween = { from: { ...cur }, to: normParams(p), t0: performance.now(), dur: dur || 900 };
   }
 
   window.Physique3D = { mount, setParams, morphTo };
+  window.__FRAG_TAG = "warm-sidelit-v6";
 })();
