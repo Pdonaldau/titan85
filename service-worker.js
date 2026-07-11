@@ -1,4 +1,4 @@
-const CACHE_NAME = "titan85-v4";
+const CACHE_NAME = "titan85-v5";
 
 const FILES = [
   "./",

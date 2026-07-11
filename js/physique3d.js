@@ -50,14 +50,14 @@
   }
 
   // Build a lofted, capped surface from horizontal elliptical rings.
-  // ringDefs: [{y, rx, rz, front (extra +z bulge), back (extra -z bulge)}]
+  // ringDefs: [{y, rx, rz, front (extra +z bulge), back (extra -z bulge), zc (centre z offset — posture curve)}]
   function loft(ringDefs, radialSegs) {
     const pos = [];
     const idx = [];
     const R = ringDefs.length;
 
     // bottom pole (shallow so the pelvis doesn't poke down between the legs)
-    pos.push(0, ringDefs[0].y - Math.min(ringDefs[0].rx, ringDefs[0].rz) * 0.3, 0);
+    pos.push(0, ringDefs[0].y - Math.min(ringDefs[0].rx, ringDefs[0].rz) * 0.3, ringDefs[0].zc || 0);
     const bottomPole = 0;
 
     for (let r = 0; r < R; r++) {
@@ -67,7 +67,7 @@
         const th = (s / radialSegs) * Math.PI * 2;
         const cx = Math.cos(th), sz = Math.sin(th);
         let x = d.rx * cx;
-        let z = d.rz * sz;
+        let z = (d.zc || 0) + d.rz * sz;
         if (sz > 0 && d.front) z += d.front * Math.pow(sz, 1.6);
         if (sz < 0 && d.back) z -= d.back * Math.pow(-sz, 1.6);
         pos.push(x, d.y, z);
@@ -76,7 +76,7 @@
 
     // top pole
     const last = ringDefs[R - 1];
-    pos.push(0, last.y + Math.min(last.rx, last.rz) * 0.5, 0);
+    pos.push(0, last.y + Math.min(last.rx, last.rz) * 0.5, last.zc || 0);
     const topPole = pos.length / 3 - 1;
 
     const ring = r => 1 + r * radialSegs; // first vertex index of ring r
@@ -164,20 +164,20 @@
 
     /* --- torso: lofted rings from pelvis (y≈48) to neck base (y≈92) --- */
     const belly = Math.max(0, 3.2 * mass - 4.2 * lean + 1.2);
-    // stations: y, rx, rz, front bulge, back bulge
+    // stations: y, rx, rz, front bulge, back bulge, zc (posture S-curve)
     const st = [
-      [51, 7.4 + mass * 1.5,            5.5 + mass * 0.9,  0,          0],
-      [57, 11.0 + mass * 2.2,           7.2 + mass * 1.4,  belly*0.35, 0.4],
-      [64, 9.8 + mass * 3.8 - lean*3.2 + muscle*0.6, 6.8 + mass*2.7 - lean*2.0, belly, 0.6],
-      [71, 10.0 + mass * 3.2 - lean*2.5 + muscle*1.2, 7.0 + mass*2.0 - lean*1.5, belly*0.75, 1.0 + muscle*0.8],
-      [79, 11.4 + muscle * 2.6 + mass * 1.5,  7.6 + mass * 1.1,  1.0 + muscle*1.6, 1.4 + muscle*1.2],
-      [85, 12.2 + muscle * 4.2 + mass * 0.9,  7.8 + mass * 0.7,  1.2 + muscle*2.0, 1.2 + muscle*1.4],
-      [90, 13.0 + muscle * 6.4 + mass * 0.6,  7.4 + muscle*0.9,  0.4 + muscle*0.6, 0.8 + muscle*1.4],
-      [92.5, (13.0 + muscle * 6.4) * 0.30,    4.6,               0,          0.3 + muscle*0.6],
+      [51, 7.4 + mass * 1.5,            5.5 + mass * 0.9,  0,          0,                 -0.9],
+      [57, 11.0 + mass * 2.2,           7.2 + mass * 1.4,  belly*0.35, 0.4,               -0.7],
+      [64, 9.8 + mass * 3.8 - lean*3.2 + muscle*0.6, 6.8 + mass*2.7 - lean*2.0, belly, 0.6,  0.1],
+      [71, 10.0 + mass * 3.2 - lean*2.5 + muscle*1.2, 7.0 + mass*2.0 - lean*1.5, belly*0.75, 1.0 + muscle*0.8, 0.7],
+      [79, 11.4 + muscle * 2.6 + mass * 1.5,  7.6 + mass * 1.1,  1.0 + muscle*1.6, 1.4 + muscle*1.2, 1.2],
+      [85, 12.2 + muscle * 4.2 + mass * 0.9,  7.8 + mass * 0.7,  1.2 + muscle*2.0, 1.2 + muscle*1.4, 1.2],
+      [90, 13.0 + muscle * 6.4 + mass * 0.6,  7.4 + muscle*0.9,  0.4 + muscle*0.6, 0.8 + muscle*1.4, 0.5],
+      [92.5, (13.0 + muscle * 6.4) * 0.30,    4.6,               0,          0.3 + muscle*0.6,  -0.2],
     ];
     const rings = [];
     const RN = 34;
-    const ys = [], rxs = [], rzs = [], fs = [], bs = [];
+    const ys = [], rxs = [], rzs = [], fs = [], bs = [], zcs = [];
     for (let i = 0; i < RN; i++) {
       const y = lerp(st[0][0], st[st.length - 1][0], i / (RN - 1));
       ys.push(y);
@@ -185,9 +185,10 @@
       rzs.push(stationValue(st, y, 2));
       fs.push(stationValue(st, y, 3));
       bs.push(stationValue(st, y, 4));
+      zcs.push(stationValue(st, y, 5));
     }
-    const rxS = smooth(rxs, 3), rzS = smooth(rzs, 3), fS = smooth(fs, 2), bS = smooth(bs, 2);
-    for (let i = 0; i < RN; i++) rings.push({ y: ys[i], rx: rxS[i], rz: rzS[i], front: fS[i], back: bS[i] });
+    const rxS = smooth(rxs, 3), rzS = smooth(rzs, 3), fS = smooth(fs, 2), bS = smooth(bs, 2), zcS = smooth(zcs, 3);
+    for (let i = 0; i < RN; i++) rings.push({ y: ys[i], rx: rxS[i], rz: rzS[i], front: fS[i], back: bS[i], zc: zcS[i] });
     add(loft(rings, 36));
 
     const shoulderRx = 13.0 + muscle * 6.4 + mass * 0.6;
@@ -199,26 +200,32 @@
     head.position.set(0, 103.4, 0.3);
     head.scale.set(0.9, 1.12, 0.96);
 
-    /* --- arms (A-pose, tapered) --- */
-    const armX = shoulderRx - 2.2;
+    /* --- arms: one continuous tapered limb, deltoid + hand built in --- */
     const flare = 6.0 + muscle * 3.2;                // how far the arm swings out
     const dSh = 3.1 + muscle * 2.3 + mass * 0.3;     // deltoid
     const dBi = 2.5 + muscle * 2.3 + mass * 0.35;    // biceps
-    const dEl = 2.1 + muscle * 1.0;                  // elbow
+    const dEl = 2.0 + muscle * 0.9;                  // elbow
     const dFo = 2.2 + muscle * 1.3;                  // forearm
-    const dWr = 1.55 + muscle * 0.35;                // wrist
-    const armProfile = profile([[0, dSh], [0.18, dSh * 0.96], [0.34, dBi], [0.52, dEl], [0.68, dFo], [1, dWr]]);
+    const dWr = 1.5 + muscle * 0.3;                  // wrist
+    const armX = shoulderRx - dSh * 0.55;            // rooted inside the torso wall
+    // radius profile runs shoulder→fingertips; the swell at .90 is the palm
+    const armProfile = profile([
+      [0, dSh * 0.9], [0.10, dSh], [0.22, dSh * 0.9], [0.32, dBi], [0.48, dEl],
+      [0.60, dFo], [0.78, dWr], [0.86, dWr * 0.95], [0.90, dWr * 1.25], [1, dWr * 0.5],
+    ]);
     for (const side of [-1, 1]) {
+      const tip = [side * (armX + flare + 0.6), 45.5, 3.6];
       add(taperedTube(
-        [[side * armX, 87.8, 0], [side * (armX + flare * 0.75), 71, 1.2], [side * (armX + flare), 55, 3.0]],
-        armProfile, 22, 18));
-      // deltoid cap (inset into the torso so the joint reads seamless)
-      const cap = add(new THREE.SphereGeometry(dSh * 1.02, 20, 16));
-      cap.position.set(side * (armX - 1.5), 87.4, 0);
-      // hand
-      const hand = add(new THREE.SphereGeometry(2.2, 16, 12));
-      hand.position.set(side * (armX + flare + 0.4), 52.2, 3.4);
-      hand.scale.set(0.85, 1.35, 0.6);
+        [[side * (armX - dSh * 0.4), 87.9, 0],
+         [side * armX, 87.6, 0.2],
+         [side * (armX + flare * 0.72), 71, 0.8],
+         [side * (armX + flare), 55, 2.8],
+         tip],
+        armProfile, 30, 18));
+      // rounded fingertip closure
+      const end = add(new THREE.SphereGeometry(dWr * 0.55, 12, 10));
+      end.position.set(tip[0], tip[1] + 0.2, tip[2]);
+      end.scale.set(1, 1.2, 0.9);
     }
 
     /* --- legs --- */
@@ -230,8 +237,8 @@
     const legProfile = profile([[0, tTh], [0.28, tTh * 0.88], [0.48, tKn], [0.64, tCa], [1, tAn]]);
     for (const side of [-1, 1]) {
       add(taperedTube(
-        [[side * hipX, 56, 0], [side * (hipX + 0.3), 30, 1.4], [side * (hipX - 1.3), 5.5, -0.2]],
-        legProfile, 24, 18));
+        [[side * (hipX - 0.3), 58, -0.7], [side * hipX, 55, -0.3], [side * (hipX + 0.3), 30, 1.6], [side * (hipX - 1.3), 5.5, -0.4]],
+        legProfile, 26, 18));
       // foot
       const foot = add(new THREE.SphereGeometry(2.6, 18, 14));
       foot.position.set(side * (hipX - 1.3), 2.0, 2.6);
@@ -347,7 +354,8 @@
 
     // DoubleSide: cap-fan winding varies per surface; culling holes are worse
     // than the negligible cost of shading both faces of one character.
-    material = new THREE.MeshStandardMaterial({ color: 0xccd3e0, roughness: 0.52, metalness: 0.06, side: THREE.DoubleSide });
+    // Warm matte clay tone — reads organic rather than plastic mannequin.
+    material = new THREE.MeshStandardMaterial({ color: 0xd8cfc4, roughness: 0.62, metalness: 0.02, side: THREE.DoubleSide });
 
     scene.add(makeFloorShadow());
     rebuild();
