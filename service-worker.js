@@ -1,4 +1,4 @@
-const CACHE_NAME = "titan85-v7";
+const CACHE_NAME = "titan85-v8";
 
 const FILES = [
   "./",
@@ -10,6 +10,7 @@ const FILES = [
   "./js/physique3d.js",
   "./js/vendor/three.module.min.js",
   "./js/app.js",
+  "./data/body.bin",
   "./data/meals.json",
   "./data/recipes.json",
   "./data/workouts.json",
