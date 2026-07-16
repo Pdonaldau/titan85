@@ -95,6 +95,24 @@
       <div id="workoutHistory" class="stack"></div>
     </section>
 
+    <!-- Exercise Library -->
+    <section class="view" id="view-exercises">
+      <h2 class="section-title">What do you want to work on?</h2>
+      <div class="muscle-grid" id="exGroupRow"></div>
+      <div class="ex-filters">
+        <input type="text" id="exSearch" placeholder="Search exercises…" />
+        <select id="exEquip" class="ex-select">
+          <option value="all">All equipment</option>
+        </select>
+      </div>
+      <p class="muted small" id="exCount"></p>
+      <p class="muted" id="exLoading" style="display:none">Loading exercise library…</p>
+      <div class="ex-grid" id="exGrid"></div>
+      <p class="muted" id="exEmpty" style="display:none">No exercises match — try another search.</p>
+      <button class="ghost-btn wide" id="exMoreBtn" style="display:none">Show more</button>
+      <p class="ex-attrib">Animations © <a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym visual</a> · data from the <a href="https://github.com/hasaneyldrm/exercises-dataset" target="_blank" rel="noopener">exercises-dataset</a></p>
+    </section>
+
     <!-- Progress -->
     <section class="view" id="view-progress">
       <h2 class="section-title">Progress</h2>
@@ -149,8 +167,17 @@
     <button class="tab" data-view="recipes"><span class="ico">🍲</span>Recipes</button>
     <button class="tab" data-view="shopping"><span class="ico">🛒</span>Shop</button>
     <button class="tab" data-view="workout"><span class="ico">🏋️</span>Train</button>
+    <button class="tab" data-view="exercises"><span class="ico">💪</span>Exercises</button>
     <button class="tab" data-view="progress"><span class="ico">📈</span>Stats</button>
   </nav>
+
+  <!-- Exercise detail modal -->
+  <div id="exModal" class="ex-modal" hidden>
+    <div class="ex-modal-card">
+      <button class="ex-close" aria-label="Close">✕</button>
+      <div class="ex-modal-body"></div>
+    </div>
+  </div>
 
   <!-- Toast -->
   <div id="toast" class="toast"></div>
@@ -158,6 +185,7 @@
   <script src="js/storage.js"></script>
   <script src="js/charts.js"></script>
   <script src="js/physique3d.js"></script>
+  <script src="js/exercises.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

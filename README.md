@@ -9,7 +9,8 @@ Works fully offline once installed, stores everything on-device, no accounts, no
 - **Plan** — browse all 4 weeks, each with its Sunday batch-cook list and 7 daily meal plans.
 - **Recipes** — 11 batch-cook recipes with macros, ingredients and method (tap a meal anywhere to jump to its recipe).
 - **Shop** — weekly shopping lists you can tick off; state saved per week.
-- **Train** — Upper / Lower / Full-body sessions. Log weight/sets/reps per exercise; it remembers your last numbers and keeps a history.
+- **Train** — Upper / Lower / Full-body sessions. Log weight/sets/reps per exercise; it remembers your last numbers and keeps a history. Each exercise has a thumbnail — tap it for an animated demo with step-by-step instructions.
+- **Exercises** — a library of 1,324 exercises. Pick what you want to work on (Back, Chest, Shoulders, Arms, Legs, Core, Cardio), filter by equipment or search, and tap any exercise for its animation and instructions. Animations stream from a CDN and are cached for offline use once viewed. Data and media from [exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) (animations © [Gym visual](https://gymvisual.com/)).
 - **Stats** — log bodyweight (offline line chart) and body measurements.
 
 All progress is saved in the browser's local storage on your phone.
@@ -24,10 +25,12 @@ css/style.css         Dark theme, safe-area aware
 js/storage.js         localStorage wrapper
 js/charts.js          Custom canvas weight chart (no libraries)
 js/app.js             Data loading, navigation, all view rendering
+js/exercises.js       Exercise library (muscle-group picker, search, GIF modal)
 data/meals.json       4 weeks × 7 days
 data/recipes.json     Recipe database
 data/workouts.json    Upper / Lower / Full-body splits
 data/shopping.json    Weekly shopping lists
+data/exercises.json   1,324-exercise library (built by tools/build-exercises.mjs)
 icons/                App icons + Apple touch icon
 ```
 

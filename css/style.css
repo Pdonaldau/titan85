@@ -199,6 +199,96 @@ main { padding: 16px 16px 24px; max-width: 640px; margin: 0 auto; }
 .ex-inputs .field { flex: 1; }
 .ex-inputs label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .8px; }
 
+/* ===== Exercise library ===== */
+.muscle-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.muscle-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 12px 4px 9px; cursor: pointer; color: var(--text); transition: .15s;
+}
+.muscle-tile .mt-emoji { font-size: 24px; }
+.muscle-tile .mt-label { font-size: 12px; font-weight: 700; }
+.muscle-tile .mt-count { font-size: 10px; color: var(--muted); }
+.muscle-tile.active { background: var(--accent); border-color: var(--accent); color: #06210f; }
+.muscle-tile.active .mt-count { color: #06210f; opacity: .75; }
+
+.ex-filters { display: flex; gap: 8px; margin-top: 14px; }
+.ex-filters input { flex: 1.4; }
+.ex-select {
+  flex: 1; min-width: 0; padding: 13px 10px; font-size: 14px;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--line); border-radius: 12px; outline: none;
+}
+
+#exCount { margin: 12px 2px 10px; }
+.ex-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.excard {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden; cursor: pointer;
+}
+.excard:active { transform: scale(.98); }
+.exgif {
+  position: relative; aspect-ratio: 1 / 1; background: #fff;
+  display: grid; place-items: center; overflow: hidden;
+}
+.exgif img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.exgif.noimg { background: var(--card-2); }
+.exgif.noimg::after { content: "🏋️"; font-size: 34px; position: absolute; }
+.exgif.noimg img { display: none; }
+.exinfo { padding: 10px 12px 12px; }
+.exinfo h4 { margin: 0; font-size: 14px; line-height: 1.3; text-transform: capitalize; }
+.exinfo p { margin: 5px 0 0; font-size: 12px; color: var(--muted); text-transform: capitalize; }
+
+.ghost-btn.wide { display: block; width: 100%; margin-top: 16px; padding: 13px; font-size: 15px; }
+
+/* Exercise detail modal */
+.ex-modal {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(8, 13, 25, 0.72);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.ex-modal[hidden] { display: none; }
+.ex-modal-card {
+  position: relative; width: 100%; max-width: 560px;
+  max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 22px 22px 0 0; padding: 18px 18px calc(24px + var(--safe-bottom));
+  animation: sheet .28s ease;
+}
+@keyframes sheet { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.ex-close {
+  position: absolute; top: 14px; right: 14px; z-index: 2;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--card-2); border: 1px solid var(--line);
+  color: var(--text); font-size: 15px; cursor: pointer;
+}
+.ex-modal .exgif.big { border-radius: 14px; max-width: 320px; margin: 0 auto; }
+.ex-modal h3 { margin: 14px 0 4px; font-size: 19px; text-transform: capitalize; }
+.ex-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ex-tag {
+  font-size: 12px; background: var(--card-2); border: 1px solid var(--line);
+  padding: 5px 10px; border-radius: 999px; color: var(--muted); text-transform: capitalize;
+}
+.ex-modal h4 { margin: 16px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.ex-steps { margin: 0; padding-left: 20px; }
+.ex-steps li { padding: 4px 0; line-height: 1.45; font-size: 15px; }
+
+.ex-attrib { margin: 18px 2px 0; font-size: 11px; color: var(--muted); text-align: center; }
+.ex-attrib a { color: var(--muted); }
+
+/* logger thumbnails */
+.ex-title-row { display: flex; align-items: center; gap: 12px; }
+.ex-title-row h3 { flex: 1; margin: 0; }
+.ex-thumb {
+  width: 48px; height: 48px; min-width: 48px; padding: 0;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: #fff; overflow: hidden; cursor: pointer;
+}
+.ex-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
 /* Inputs & buttons */
 input[type="number"], input[type="text"], input:not([type]) {
   width: 100%; padding: 13px 14px; font-size: 16px;

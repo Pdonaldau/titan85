@@ -81,7 +81,7 @@ function todayKey() {
 /* ---------- navigation ---------- */
 const TITLES = {
   today: "Today", plan: "Meal Plan", recipes: "Recipes",
-  shopping: "Shopping", workout: "Workout", progress: "Progress",
+  shopping: "Shopping", workout: "Workout", exercises: "Exercises", progress: "Progress",
 };
 function setupNav() {
   document.querySelectorAll(".tab").forEach(btn => {
@@ -95,6 +95,7 @@ function switchView(view) {
   document.querySelector(`.tab[data-view="${view}"]`).classList.add("active");
   document.getElementById("headerTitle").textContent = TITLES[view];
   if (view === "today") renderPhysique();
+  if (view === "exercises") ExLib.open();
   if (view === "progress") drawWeightChart(TitanStorage.load("history", []));
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
 }
@@ -513,13 +514,21 @@ function renderWorkout() {
     const prev = last[ex.exercise] || {};
     const card = document.createElement("div");
     card.className = "card ex-row";
+    const thumb = ex.media
+      ? `<button class="ex-thumb" data-exid="${ex.exId}" aria-label="Show ${esc(ex.exercise)} demo">
+           <img loading="lazy" src="${ExLib.imgUrl(ex.media)}" alt="" /></button>`
+      : "";
     card.innerHTML = `
-      <h3>${esc(ex.exercise)} <span class="target">${ex.sets} × ${esc(ex.reps)}</span></h3>
+      <div class="ex-title-row">${thumb}
+        <h3>${esc(ex.exercise)} <span class="target">${ex.sets} × ${esc(ex.reps)}</span></h3>
+      </div>
       <div class="ex-inputs">
         <div class="field"><label>Weight (kg)</label><input type="number" inputmode="decimal" data-ex="${idx}" data-f="weight" value="${prev.weight ?? ""}" placeholder="—"/></div>
         <div class="field"><label>Sets</label><input type="number" inputmode="numeric" data-ex="${idx}" data-f="sets" value="${prev.sets ?? ex.sets}" /></div>
         <div class="field"><label>Reps</label><input type="text" data-ex="${idx}" data-f="reps" value="${prev.reps ?? ""}" placeholder="${esc(ex.reps)}"/></div>
       </div>`;
+    const tBtn = card.querySelector(".ex-thumb");
+    if (tBtn) tBtn.addEventListener("click", () => ExLib.showById(tBtn.dataset.exid));
     list.appendChild(card);
   });
 

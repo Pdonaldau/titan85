@@ -4,37 +4,37 @@
       "id": "upper",
       "name": "Upper Body",
       "exercises": [
-        { "exercise": "Bench Press", "sets": 3, "reps": "8-10" },
-        { "exercise": "Incline Dumbbell Press", "sets": 3, "reps": "10" },
-        { "exercise": "Lat Pulldown", "sets": 3, "reps": "10" },
-        { "exercise": "Cable Row", "sets": 3, "reps": "10" },
-        { "exercise": "Shoulder Press", "sets": 3, "reps": "10" },
-        { "exercise": "Bicep Curl", "sets": 3, "reps": "12" },
-        { "exercise": "Tricep Pushdown", "sets": 3, "reps": "12" }
+        { "exercise": "Bench Press", "sets": 3, "reps": "8-10", "exId": "0025", "media": "0025-EIeI8Vf" },
+        { "exercise": "Incline Dumbbell Press", "sets": 3, "reps": "10", "exId": "0314", "media": "0314-ns0SIbU" },
+        { "exercise": "Lat Pulldown", "sets": 3, "reps": "10", "exId": "0150", "media": "0150-eYnzaCm" },
+        { "exercise": "Cable Row", "sets": 3, "reps": "10", "exId": "0861", "media": "0861-fUBheHs" },
+        { "exercise": "Shoulder Press", "sets": 3, "reps": "10", "exId": "0405", "media": "0405-znQUdHY" },
+        { "exercise": "Bicep Curl", "sets": 3, "reps": "12", "exId": "0294", "media": "0294-NbVPDMW" },
+        { "exercise": "Tricep Pushdown", "sets": 3, "reps": "12", "exId": "0201", "media": "0201-3ZflifB" }
       ]
     },
     {
       "id": "lower",
       "name": "Lower Body",
       "exercises": [
-        { "exercise": "Leg Press", "sets": 3, "reps": "10" },
-        { "exercise": "Romanian Deadlift", "sets": 3, "reps": "10" },
-        { "exercise": "Walking Lunges", "sets": 3, "reps": "12" },
-        { "exercise": "Leg Curl", "sets": 3, "reps": "12" },
-        { "exercise": "Standing Calf Raise", "sets": 3, "reps": "15" },
-        { "exercise": "Plank", "sets": 3, "reps": "45 sec" }
+        { "exercise": "Leg Press", "sets": 3, "reps": "10", "exId": "0739", "media": "0739-10Z2DXU" },
+        { "exercise": "Romanian Deadlift", "sets": 3, "reps": "10", "exId": "0085", "media": "0085-wQ2c4XD" },
+        { "exercise": "Walking Lunges", "sets": 3, "reps": "12", "exId": "1460", "media": "1460-IZVHb27" },
+        { "exercise": "Leg Curl", "sets": 3, "reps": "12", "exId": "0586", "media": "0586-17lJ1kr" },
+        { "exercise": "Standing Calf Raise", "sets": 3, "reps": "15", "exId": "0605", "media": "0605-ykUOVze" },
+        { "exercise": "Plank", "sets": 3, "reps": "45 sec", "exId": "2135", "media": "2135-VBAWRPG" }
       ]
     },
     {
       "id": "full",
       "name": "Full Body",
       "exercises": [
-        { "exercise": "Squat", "sets": 3, "reps": "8-10" },
-        { "exercise": "Bench Press", "sets": 3, "reps": "8-10" },
-        { "exercise": "Deadlift", "sets": 3, "reps": "6-8" },
-        { "exercise": "Pull-Up", "sets": 3, "reps": "8-10" },
-        { "exercise": "Shoulder Press", "sets": 3, "reps": "10" },
-        { "exercise": "Plank", "sets": 3, "reps": "60 sec" }
+        { "exercise": "Squat", "sets": 3, "reps": "8-10", "exId": "0043", "media": "0043-qXTaZnJ" },
+        { "exercise": "Bench Press", "sets": 3, "reps": "8-10", "exId": "0025", "media": "0025-EIeI8Vf" },
+        { "exercise": "Deadlift", "sets": 3, "reps": "6-8", "exId": "0032", "media": "0032-ila4NZS" },
+        { "exercise": "Pull-Up", "sets": 3, "reps": "8-10", "exId": "0652", "media": "0652-lBDjFxJ" },
+        { "exercise": "Shoulder Press", "sets": 3, "reps": "10", "exId": "0405", "media": "0405-znQUdHY" },
+        { "exercise": "Plank", "sets": 3, "reps": "60 sec", "exId": "2135", "media": "2135-VBAWRPG" }
       ]
     }
   ]
