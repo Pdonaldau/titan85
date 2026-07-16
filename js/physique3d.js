@@ -3,11 +3,12 @@
    Renders data/body.bin — a preprocessed A-pose male base mesh
    (24k verts) with baked per-vertex morph weights — and morphs
    it in the vertex shader from the shape params (all 0..1):
-     muscle  — deltoids/biceps/pecs/traps/lats/calves bulk
+     muscle  — definition/tone (tightens soft tissue; never adds girth)
      lean    — reduces belly/love-handles/glute fat
-     mass    — overall girth (BMI-driven)
+     mass    — overall girth incl. limbs (BMI/bodyweight-driven)
      stature — leg length from user height
      fem     — female proportions (shoulders/hips/waist/bust)
+   Limb size follows bodyweight only; the build changes definition.
    Morph = uniform tweening, perfectly smooth. Fully offline.
    Exposes window.Physique3D = { mount, setParams, morphTo }.
    ============================================================ */
@@ -34,23 +35,37 @@
     varying vec3 vWorld;
 
     void main() {
-      // how much soft tissue this body carries
-      float fat = clamp(uMass * 0.9 - uLean * 0.75 + 0.18, 0.0, 1.3);
+      // adiposity — soft tissue this body carries. Grows as BMI (uMass)
+      // outpaces leanness; a low-lean ("unfit") build also carries a
+      // little softness at any weight, so the build reads at low BMI too.
+      float soft = (1.0 - uLean) * 0.12;
+      float fat  = clamp(uMass * 1.05 - uLean * 0.80 + soft, 0.0, 1.3);
+
+      // overall frame girth from BODYWEIGHT ONLY, bidirectional around a
+      // lean baseline (0.35). This is the sole term that resizes the
+      // limbs: heavier -> thicker arms/legs, lighter -> slimmer. The
+      // build selector never feeds it, so switching build at a fixed
+      // weight does NOT grow the arms.
+      float frame = uMass - 0.35;
+
+      // the build (uMuscle) changes DEFINITION, not size: a more toned
+      // build tightens the soft tissue so the same bodyweight reads
+      // harder and leaner. It does not inflate muscle regions.
+      float tone = 1.0 - uMuscle * 0.35;
 
       // fractional girth growth — applied along the vertex normal scaled
       // by distance-to-bone, which is seam-free across limb boundaries
       float gain =
-          uMuscle * aW1.x * 0.45
-        + fat     * aW1.y * 0.60
-        + uMass   * 0.08
-        - uLean   * 0.06 * (1.0 - aW1.x)
+          fat     * aW1.y * 0.62 * tone
+        + frame   * 0.28
+        - uLean   * 0.05 * (1.0 - aW1.x)
         + uFem    * (aW2.y * 0.26 - aW2.x * 0.22 - aW2.w * 0.18)
         + uBreath * aW2.z;
 
       vec3 pos = position + normalize(normal) * aR * gain;
 
-      // belly pushes forward, bust with fem
-      pos.z += fat  * aW1.z * 0.95;
+      // belly pushes forward (tightened by tone), bust with fem
+      pos.z += fat  * aW1.z * 1.0 * tone;
       pos.z += uFem * aW2.z * 0.45;
 
       // stature: legs lengthen, everything above rides up
@@ -258,5 +273,5 @@
   }
 
   window.Physique3D = { mount, setParams, morphTo };
-  window.__FRAG_TAG = "realmesh-v8";
+  window.__FRAG_TAG = "realmesh-v10";
 })();
